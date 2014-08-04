@@ -1,0 +1,2 @@
+module AfStrongParamaters
+end
