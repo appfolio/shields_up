@@ -1,0 +1,1 @@
+This gem encapsulates strong_parameters
