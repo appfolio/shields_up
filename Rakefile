@@ -16,7 +16,7 @@ require 'af_gems/appraisal'
 namespace :test do
   Rake::TestTask.new(:units) do |test|
     test.libs << 'lib' << 'test'
-    test.pattern = 'test/af_job/**/*_test.rb'
+    test.pattern = 'test/af_strong_parameters/**/*_test.rb'
     test.verbose = true
   end
 

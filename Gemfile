@@ -5,3 +5,5 @@ gemspec
 
 gem 'appraisal'
 gem 'af_gems'
+gem 'af_testing'
+gem 'mocha'
