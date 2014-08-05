@@ -6,4 +6,4 @@ gemspec
 gem 'appraisal'
 gem 'af_gems', '~> 4.2'
 gem 'mocha'
-gem 'minitest'
+gem 'minitest', '~> 4.0'
