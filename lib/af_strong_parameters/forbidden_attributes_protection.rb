@@ -3,16 +3,12 @@ module AfStrongParameters
 
   module ForbiddenAttributesProtection
     def sanitize_for_mass_assignment(*options)
-      def coming_from_controller
-        caller.select{|line| line =~ /abstract_controller\/base\.rb/}.any?
-      end
-      new_attributes = options.first
-      has_no_permit_information = !new_attributes.respond_to?(:permitted?)
-      raise AfStrongParameters::ForbiddenAttributes if coming_from_controller && has_no_permit_information
-      if has_no_permit_information || new_attributes.permitted?
+      new_attributes = options.first.keys.map(&:to_sym)
+      permitted_attributes = Thread.current.thread_variable_get(:permitted_for_mass_assignment).try(:fetch, self.class.to_s.underscore.to_sym) || []
+      if Thread.current.thread_variable_get(:permitted_for_mass_assignment).nil? || (new_attributes - permitted_attributes).empty?
         super
       else
-        raise AfStrongParameters::ForbiddenAttributes
+        raise AfStrongParameters::ForbiddenAttributes "#{new_attributes - permitted_attributes} not allowed to be mass-assigned on #{self.class.to_s}."
       end
     end
   end
