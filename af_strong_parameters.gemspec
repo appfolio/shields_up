@@ -1,17 +1,17 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'af_strong_parameters/version'
+require 'shields_up/version'
 
 Gem::Specification.new do |s|
-  s.name          = 'af_strong_parameters'
-  s.version       = AfStrongParameters::VERSION
+  s.name          = 'shields_up'
+  s.version       = ShieldsUp::VERSION
   s.platform      = Gem::Platform::RUBY
   s.authors       = ['AppFolio']
   s.email         = 'dev@appfolio.com'
-  s.description   = 'Strong_parameters made by AppFolio Inc.'
+  s.description   = 'Mass assignment Protection made by AppFolio Inc., inspired by strong_parameters.'
   s.summary       = s.description
-  s.homepage      = 'http://github.com/appfolio'
+  s.homepage      = 'http://github.com/appfolio/shields_up'
   s.licenses      = ['MIT']
 
   s.files         = Dir['**/*'].reject{ |f| f[%r{^pkg/}] || f[%r{^test/}] }  
