@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
   s.files         = Dir['**/*'].reject{ |f| f[%r{^pkg/}] || f[%r{^test/}] }  
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
+  s.add_dependency('request_store')
 end

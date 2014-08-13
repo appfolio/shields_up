@@ -1,60 +1,46 @@
 require 'helper'
+require 'shields_up/forbidden_attributes_protection'
+require 'active_model'
 
 class ShieldsUp::ForbiddenAttributesProtectionTest < MiniTest::Unit::TestCase
 
-  class FaketiveRecord
-    def sanitize_for_mass_assignment(*args)
-    end
-  end
-
-  class Test < FaketiveRecord
+  class ::Model
+    include ActiveModel::MassAssignmentSecurity
     include ShieldsUp::ForbiddenAttributesProtection
+    public :sanitize_for_mass_assignment
   end
 
-  def test_sanitize_for_mass_assignment_controller_permitted_false
-    setup_record(true)
+  def test_controller_allowed
+    setup_controller([:name])
+    Model.new.sanitize_for_mass_assignment('name' => 'name')
+  end
+
+  def test_controller_forbidden
+    setup_controller
     assert_raises ShieldsUp::ForbiddenAttributes do
-      @record.sanitize_for_mass_assignment(params_mock_false)
+      Model.new.sanitize_for_mass_assignment(:name => 'name')
     end
   end
 
-  def test_sanitize_for_mass_assignment_controller_permitted_true
-    setup_record(true)
-    FaketiveRecord.any_instance.expects(:sanitize_for_mass_assignment)
-    @record.sanitize_for_mass_assignment(params_mock_true)
-  end
-
-  def test_sanitize_for_mass_assignment_controller_no_permitted_function
-    setup_record(true)
+  def test_controller_mixed
+    setup_controller([:name])
     assert_raises ShieldsUp::ForbiddenAttributes do
-      @record.sanitize_for_mass_assignment(params_mock_no_method)
+      Model.new.sanitize_for_mass_assignment(:name => 'name', :id => 'id')
     end
   end
 
-  def test_sanitize_for_mass_assignment_no_controller_allows_mass_assignment
-    setup_record(false, 2)
-    FaketiveRecord.any_instance.expects(:sanitize_for_mass_assignment).twice
-    [params_mock_true, params_mock_no_method].each do |mock|
-      @record.sanitize_for_mass_assignment(mock)
-    end
+  def test_no_controller
+    Model.new.sanitize_for_mass_assignment(:name => 'name')
+  end
+
+  def setup
+    RequestStore.clear!
+    super
   end
 
 private
 
-  def setup_record(from_controller, num = 1)
-    @record = ShieldsUp::ForbiddenAttributesProtectionTest::Test.new
-    @record.expects(:coming_from_controller).returns(from_controller).times(num)
-  end
-
-  def params_mock_true
-    mock(:permitted? => true)
-  end
-
-  def params_mock_false
-    mock(:permitted? => false)
-  end
-
-  def params_mock_no_method
-    mock
+  def setup_controller(params = [])
+    RequestStore.store[:permitted_for_mass_assignment] = {:Model => params}
   end
 end

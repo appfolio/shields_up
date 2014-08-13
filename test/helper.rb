@@ -1,4 +1,4 @@
 require 'test/unit'
-require 'shields_up'
 require 'mocha/setup'
+require 'shields_up'
 

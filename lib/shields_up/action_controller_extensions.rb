@@ -1,14 +1,16 @@
 module ShieldsUp
   module ActionControllerExtensions
-    before_filter do
-      self.permitted = {}
+    def self.included(klass)
+      klass.before_filter do
+        self.permitted = {}
+      end
     end
 
     def permit_for_model(model, attributes)
       white_list = attributes.is_a?(Array) ? attributes : [attributes]
       key = model_symbol(model)
       old_white_list = permitted[key] || []
-      permitted[key] = (white_list.map(&:to_sym) + old_white_list).compact
+      permitted[key] = (white_list.map(&:to_sym) + old_white_list).uniq
     end
 
     def permitted_for_model(model)
@@ -16,17 +18,17 @@ module ShieldsUp
     end
 
     def permitted
-      Thread.current.thread_variable_get(:permitted_for_mass_assignment)
+      RequestStore.store[:permitted_for_mass_assignment]
     end
 
   private
 
     def permitted=(arg)
-      Thread.current.thread_variable_set(:permitted_for_mass_assignment, arg)
+      RequestStore.store[:permitted_for_mass_assignment] = arg
     end
 
     def model_symbol(model)
-      model.name.underscore.to_sym
+      model.to_s.to_sym
     end
   end
 end
