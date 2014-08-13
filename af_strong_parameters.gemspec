@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description   = 'Strong_parameters made by AppFolio Inc.'
   s.summary       = s.description
   s.homepage      = 'http://github.com/appfolio'
-  s.licenses      = ['Proprietary']
+  s.licenses      = ['MIT']
 
   s.files         = Dir['**/*'].reject{ |f| f[%r{^pkg/}] || f[%r{^test/}] }  
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
