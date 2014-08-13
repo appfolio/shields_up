@@ -1,2 +1,0 @@
-require 'strong_parameters'
-require 'af_strong_parameters/forbidden_attributes_protection'

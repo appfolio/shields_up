@@ -1,1 +1,1 @@
-This gem encapsulates strong_parameters
+This gem provides an alternative implementation of strong_parameters

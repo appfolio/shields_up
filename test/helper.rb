@@ -1,4 +1,4 @@
 require 'test/unit'
-require 'af_strong_parameters'
+require 'shields_up'
 require 'mocha/setup'
 

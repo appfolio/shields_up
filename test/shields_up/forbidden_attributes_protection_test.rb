@@ -1,6 +1,6 @@
 require 'helper'
 
-class AfStrongParameters::ForbiddenAttributesProtectionTest < MiniTest::Unit::TestCase
+class ShieldsUp::ForbiddenAttributesProtectionTest < MiniTest::Unit::TestCase
 
   class FaketiveRecord
     def sanitize_for_mass_assignment(*args)
@@ -8,12 +8,12 @@ class AfStrongParameters::ForbiddenAttributesProtectionTest < MiniTest::Unit::Te
   end
 
   class Test < FaketiveRecord
-    include AfStrongParameters::ForbiddenAttributesProtection
+    include ShieldsUp::ForbiddenAttributesProtection
   end
 
   def test_sanitize_for_mass_assignment_controller_permitted_false
     setup_record(true)
-    assert_raises AfStrongParameters::ForbiddenAttributes do
+    assert_raises ShieldsUp::ForbiddenAttributes do
       @record.sanitize_for_mass_assignment(params_mock_false)
     end
   end
@@ -26,7 +26,7 @@ class AfStrongParameters::ForbiddenAttributesProtectionTest < MiniTest::Unit::Te
 
   def test_sanitize_for_mass_assignment_controller_no_permitted_function
     setup_record(true)
-    assert_raises AfStrongParameters::ForbiddenAttributes do
+    assert_raises ShieldsUp::ForbiddenAttributes do
       @record.sanitize_for_mass_assignment(params_mock_no_method)
     end
   end
@@ -42,7 +42,7 @@ class AfStrongParameters::ForbiddenAttributesProtectionTest < MiniTest::Unit::Te
 private
 
   def setup_record(from_controller, num = 1)
-    @record = AfStrongParameters::ForbiddenAttributesProtectionTest::Test.new
+    @record = ShieldsUp::ForbiddenAttributesProtectionTest::Test.new
     @record.expects(:coming_from_controller).returns(from_controller).times(num)
   end
 

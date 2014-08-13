@@ -16,7 +16,7 @@ require 'af_gems/appraisal'
 namespace :test do
   Rake::TestTask.new(:units) do |test|
     test.libs << 'lib' << 'test'
-    test.pattern = 'test/af_strong_parameters/**/*_test.rb'
+    test.pattern = 'test/shields_up/**/*_test.rb'
     test.verbose = true
   end
 
@@ -31,7 +31,7 @@ namespace :test do
 end
 
 
-desc 'Test the af_strong_paramaters plugin.'
+desc 'Test Shields up.'
 
 task :test => ["test:units", "test:functionals"]
 
