@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.homepage      = 'http://github.com/appfolio/shields_up'
   s.licenses      = ['MIT']
 
-  s.files         = Dir['**/*'].reject{ |f| f[%r{^pkg/}] || f[%r{^test/}] }  
+  s.files         = Dir['**/*'].reject{ |f| f[%r{^pkg/}] || f[%r{^test/}] }
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
   s.add_dependency('request_store')
