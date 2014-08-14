@@ -18,13 +18,13 @@ module ShieldsUp
     end
 
     def permitted
-      RequestStore.store[:permitted_for_mass_assignment]
+      Thread.current.thread_variable_get(:permitted_for_mass_assignment)
     end
 
   private
 
     def permitted=(arg)
-      RequestStore.store[:permitted_for_mass_assignment] = arg
+      Thread.current.thread_variable_set(:permitted_for_mass_assignment, arg)
     end
 
     def model_symbol(model)
