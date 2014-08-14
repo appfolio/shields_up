@@ -12,6 +12,8 @@ end
 require 'rake'
 require 'rake/testtask'
 
+require 'af_gems/gem_tasks'
+
 namespace :test do
   Rake::TestTask.new(:all) do |test|
     test.libs << 'lib' << 'test'
