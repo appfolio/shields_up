@@ -42,19 +42,20 @@ class ShieldsUp::ActionControllerExtensionsTest < ActionController::TestCase
   tests SomeController
 
   def setup
+    RequestStore.clear!
     @routes = Routes.routes
     super
   end
 
   def test_before_filter
     get :action
-    assert_equal({}, Thread.current.thread_variable_get(:permitted_for_mass_assignment))
+    assert_equal({}, RequestStore.store[:permitted_for_mass_assignment])
   end
 
   def test_permit_for_model
     get :action_with_permit
     expected = {:FakeModel => [:name, :foobar], :AnotherFakeModel => [:baz, :name]}
-    assert_equal(expected, Thread.current.thread_variable_get(:permitted_for_mass_assignment))
+    assert_equal(expected, RequestStore.store[:permitted_for_mass_assignment])
     assert_equal(expected, @controller.permitted)
     assert_equal([:name, :foobar], @controller.permitted_for_model(FakeModel))
     assert_equal([:baz, :name], @controller.permitted_for_model(AnotherFakeModel))

@@ -30,17 +30,17 @@ class ShieldsUp::ForbiddenAttributesProtectionTest < MiniTest::Unit::TestCase
   end
 
   def test_no_controller
-    setup_no_controller
     Model.new.sanitize_for_mass_assignment(:name => 'name')
   end
 
-  private
-
-  def setup_no_controller
-    Thread.current.stubs(:thread_variable?).with(:permitted_for_mass_assignment).returns(false)
+  def setup
+    RequestStore.clear!
+    super
   end
 
+private
+
   def setup_controller(params = [])
-    Thread.current.thread_variable_set(:permitted_for_mass_assignment, {:Model => params})
+    RequestStore.store[:permitted_for_mass_assignment] = {:Model => params}
   end
 end
