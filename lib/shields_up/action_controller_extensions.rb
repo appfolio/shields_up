@@ -2,7 +2,7 @@ module ShieldsUp
   module ActionControllerExtensions
     def self.included(klass)
       klass.before_filter do
-        self.permitted = {}
+        self.permitted = {} unless permitted
       end
     end
 

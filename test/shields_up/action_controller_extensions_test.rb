@@ -52,6 +52,13 @@ class ShieldsUp::ActionControllerExtensionsTest < ActionController::TestCase
     assert_equal({}, RequestStore.store[:permitted_for_mass_assignment])
   end
 
+  def test_before_filter_does_not_reset_existing_value
+    RequestStore.store[:permitted_for_mass_assignment] = {:FakerFaker => [:a]}
+    get :action_with_permit
+    expected = {:FakerFaker => [:a], :FakeModel => [:name, :foobar], :AnotherFakeModel => [:baz, :name]}
+    assert_equal(expected, RequestStore.store[:permitted_for_mass_assignment])
+  end
+
   def test_permit_for_model
     get :action_with_permit
     expected = {:FakeModel => [:name, :foobar], :AnotherFakeModel => [:baz, :name]}
