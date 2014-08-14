@@ -5,34 +5,19 @@ begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
   $stderr.puts e.message
-  $stderr.puts "Run `bundle install` to install missing gems"
+  $stderr.puts 'Run `bundle install` to install missing gems'
   exit e.status_code
 end
 
 require 'rake'
-require 'af_gems/gem_tasks'
-require 'af_gems/appraisal'
+require 'rake/testtask'
 
 namespace :test do
-  Rake::TestTask.new(:units) do |test|
+  Rake::TestTask.new(:all) do |test|
     test.libs << 'lib' << 'test'
     test.pattern = 'test/shields_up/**/*_test.rb'
     test.verbose = true
   end
-
-  Rake::TestTask.new(:functionals) do |test|
-    test.libs << 'lib' << 'test'
-    test.pattern = 'test/functional/**/*_test.rb'
-    test.verbose = true
-  end
-
-  AfGems::RubyAppraisalTask.new(:all, [ 'ruby-2.0.0', 'ruby-2.1.2' ])
-
 end
 
-
-desc 'Test Shields up.'
-
-task :test => ["test:units", "test:functionals"]
-
-task :default => :test
+task :default => 'test:all'
