@@ -1,5 +1,4 @@
 require 'helper'
-require 'shields_up/action_controller_extensions'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'rails'
@@ -15,7 +14,7 @@ module Routes
   end
 end
 
-class ShieldsUp::ActionControllerExtensionsTest < ActionController::TestCase
+class ShieldsUpTest < ActionController::TestCase
   ENV['RAILS_ENV'] = 'test'
   Rails.application = class FakeApp < Rails::Application; end
 
