@@ -35,8 +35,9 @@ module ShieldsUp
     end
 
     def initialize(params, controller)
+      @original_params = params
       @controller = controller
-      @params = deep_dup_to_hash(params)
+      @params = deep_dup_to_hash(params || {})
     end
 
     def to_s
@@ -47,16 +48,16 @@ module ShieldsUp
       {}.tap do |permitted|
         permissions.each do |permission|
           if permission.is_a?(Symbol)
-            raise ParameterIsArray.new("#{permission} is an array parameter but only a scalar was permitted.\nUse [#{permission}] instead of #{permission} if you want to allow an array.") if @params[permission].is_a?(Array)
             permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
           else
             sub_hash = permission.keys.first
-            permitted_for_sub_hash = permission.values.first
-            if sub_hash.is_a?(Array)
-              sub_hash = sub_hash.first
-              permitted[sub_hash] = to_permitted_scalar_array(@params[sub_hash].collect{ |entry| self.class.new(entry, @controller).permit(*permitted_for_sub_hash) }) if @params.has_key?(sub_hash)
-            else
-              permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash) if @params.has_key?(sub_hash)
+            if @params.has_key?(sub_hash)
+              permitted_for_sub_hash = permission.values.first
+              if permitted_for_sub_hash == []
+                permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
+              else
+                permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+              end
             end
           end
         end
@@ -64,15 +65,7 @@ module ShieldsUp
     end
 
     def require(key)
-      if @params.has_key?(key)
-        if @params[key].is_a?(Array)
-          to_permitted_scalar_array(@params[key].collect{ |entry| self.class.new(entry, @controller) })
-        else
-          self.class.new(@params[key], @controller)
-        end
-      else
-        raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
-      end
+      self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
     end
 
     # def permit!
@@ -83,6 +76,8 @@ module ShieldsUp
       value = @params[key]
       if value.is_a?(Hash)
         self.class.new(value, @controller)
+      elsif value.is_a?(Array)
+        value.select{ |element| permitted_scalar?(element) }
       else
         permitted_scalar?(value) ? value : nil
       end
@@ -92,10 +87,6 @@ module ShieldsUp
 
     def permitted_scalar?(value)
       PERMITTED_SCALAR_TYPES.include? value.class
-    end
-
-    def to_permitted_scalar_array(array)
-      array.select{ |entry| permitted_scalar?(entry) }
     end
 
     def deep_dup_to_hash(params)
