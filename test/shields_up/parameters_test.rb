@@ -77,13 +77,13 @@ module ShieldsUp
       end
     end
 
-    def test_without_mass_assignment_protection
+    def test_with_shields_Down
       setup_parameters(Parameters.new(ActiveSupport::HashWithIndifferentAccess.new('param' => 1), @controller))
       saved = @controller.params
       assert_nil @controller.params['param']
       assert_nil @controller.params[:param]
       assert_equal ShieldsUp::Parameters, @controller.params.class
-      @controller.params.without_mass_assignment_protection do
+      @controller.params.with_shields_down do
         assert_equal 1, @controller.params['param']
         assert_equal 1, @controller.params[:param]
         assert_equal ActiveSupport::HashWithIndifferentAccess, @controller.params.class

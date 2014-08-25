@@ -26,7 +26,7 @@ module ShieldsUp
       PERMITTED_SCALAR_TYPES << Rack::Test::UploadedFile
     end
 
-    def without_mass_assignment_protection
+    def with_shields_down
       saved = @controller.params
       @controller.params = @original_params
       yield
