@@ -31,7 +31,7 @@ class ShieldsUpTest < ActionController::TestCase
 
     def action_no_protection
       saved_params = params
-      params.without_mass_assignment_protection do
+      params.with_shields_down do
         raise unless ShieldsUp::Parameters::PARAM_TYPE == params.class
       end
       raise unless saved_params == params
@@ -51,7 +51,7 @@ class ShieldsUpTest < ActionController::TestCase
     assert_equal ShieldsUp::Parameters, @controller.params.class
   end
 
-  def test_without_mass_assignment_protection
+  def test_with_shields_down
     get :action_no_protection
     assert_equal ShieldsUp::Parameters, @controller.params.class
   end
