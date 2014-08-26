@@ -62,8 +62,8 @@ class ShieldsUpTest < ActionController::TestCase
 
   def test_rescue_from
     get :raise_params_missing_exception
-    assert_equal 400, response.instance_variable_get(:@status)
-    assert_include response.instance_variable_get(:@body).first, 'Required parameter missing: Required parameter stuff does not exist in'
+    assert_response :bad_request
+    assert_include response.body, 'Required parameter missing: Required parameter stuff does not exist in'
   end
 end
 
