@@ -29,6 +29,10 @@ class ShieldsUpTest < ActionController::TestCase
       render :nothing => true
     end
 
+    def raise_params_missing_exception
+      params.require(:stuff)
+    end
+
     def action_no_protection
       saved_params = params
       params.with_shields_down do
@@ -54,6 +58,12 @@ class ShieldsUpTest < ActionController::TestCase
   def test_with_shields_down
     get :action_no_protection
     assert_equal ShieldsUp::Parameters, @controller.params.class
+  end
+
+  def test_rescue_from
+    get :raise_params_missing_exception
+    assert_equal 400, response.instance_variable_get(:@status)
+    assert_include response.instance_variable_get(:@body).first, 'Required parameter missing: Required parameter stuff does not exist in'
   end
 end
 
