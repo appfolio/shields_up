@@ -8,7 +8,6 @@ module Routes
     ActionDispatch::Routing::RouteSet.new.tap do |routes|
       routes.draw do
         match '/:controller/:action', to: 'some_controller#action'
-        match '/:controller/:action_no_protection', to: 'some_controller#action_no_protection'
       end
     end
   end
