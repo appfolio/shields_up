@@ -20,7 +20,7 @@ module ShieldsUp
       assert_equal expected, params[:hashes].instance_variable_get(:@params)
       assert_equal params[:hashes].class, ShieldsUp::Parameters
       assert_nil params[:doesntexist]
-      expected = ['b', 'c']
+      expected = ['b', 'c', 1]
       assert_equal expected, params[:a]
     end
 
@@ -32,8 +32,9 @@ module ShieldsUp
     end
 
     def test_permit_array
-      params = Parameters.new({'foo' => ['1', '2', '3', 1]}, @controller)
-      expected = {:foo => ['1', '2', '3']}
+      object = Controller.new
+      params = Parameters.new({'foo' => ['1', '2', '3', 1, object]}, @controller)
+      expected = {:foo => ['1', '2', '3', 1]}
       assert_equal expected, params.permit(:foo => [])
       expected = {}
       assert_equal expected, params.permit(:foo)
@@ -78,14 +79,15 @@ module ShieldsUp
     end
 
     def test_with_shields_Down
-      setup_parameters(Parameters.new(ActiveSupport::HashWithIndifferentAccess.new('param' => 1), @controller))
+      object = Controller.new
+      setup_parameters(Parameters.new(ActiveSupport::HashWithIndifferentAccess.new('param' => object), @controller))
       saved = @controller.params
       assert_nil @controller.params['param']
       assert_nil @controller.params[:param]
       assert_equal ShieldsUp::Parameters, @controller.params.class
       @controller.params.with_shields_down do
-        assert_equal 1, @controller.params['param']
-        assert_equal 1, @controller.params[:param]
+        assert_equal object, @controller.params['param']
+        assert_equal object, @controller.params[:param]
         assert_equal ActiveSupport::HashWithIndifferentAccess, @controller.params.class
       end
       assert_nil @controller.params['param']
