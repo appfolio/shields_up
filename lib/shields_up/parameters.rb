@@ -86,7 +86,7 @@ module ShieldsUp
   private
 
     def permitted_scalar?(value)
-      PERMITTED_SCALAR_TYPES.include? value.class
+      PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
     end
 
     def deep_dup_to_hash(params)
