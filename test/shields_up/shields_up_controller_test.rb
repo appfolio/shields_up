@@ -8,7 +8,6 @@ module Routes
     ActionDispatch::Routing::RouteSet.new.tap do |routes|
       routes.draw do
         match '/:controller/:action', to: 'some_controller#action'
-        match '/:controller/:action_no_protection', to: 'some_controller#action_no_protection'
       end
     end
   end
@@ -27,6 +26,10 @@ class ShieldsUpTest < ActionController::TestCase
 
     def action
       render :nothing => true
+    end
+
+    def raise_params_missing_exception
+      params.require(:stuff)
     end
 
     def action_no_protection
@@ -54,6 +57,12 @@ class ShieldsUpTest < ActionController::TestCase
   def test_with_shields_down
     get :action_no_protection
     assert_equal ShieldsUp::Parameters, @controller.params.class
+  end
+
+  def test_rescue_from
+    get :raise_params_missing_exception
+    assert_response :bad_request
+    assert_include response.body, 'Required parameter missing: Required parameter stuff does not exist in'
   end
 end
 
