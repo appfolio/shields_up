@@ -55,8 +55,17 @@ module ShieldsUp
               permitted_for_sub_hash = permission.values.first
               if permitted_for_sub_hash == []
                 permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
-              else
-                permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+              else # :things => [:name, :stuff]
+                if @params[sub_hash].is_a? Array
+                  @params[sub_hash].each do |element|
+                    if element.is_a? Hash
+                      permitted[sub_hash] ||= []
+                      permitted[sub_hash] << self.class.new(element, @controller).permit(*permitted_for_sub_hash)
+                    end
+                  end
+                  else
+                    permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+                  end
               end
             end
           end
@@ -68,16 +77,24 @@ module ShieldsUp
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
     end
 
-    # def permit!
-    #   deep_dup_to_hash(@params)
-    # end
+    def permit!
+      deep_dup_to_hash(@params)
+    end
 
     def [](key)
       value = @params[key]
       if value.is_a?(Hash)
         self.class.new(value, @controller)
       elsif value.is_a?(Array)
-        value.select{ |element| permitted_scalar?(element) }
+        array = []
+        value.each do |element|
+          if permitted_scalar?(element)
+            array << element
+          elsif element.is_a? Hash
+            array << self.class.new(element, @controller)
+          end
+        end
+        array
       else
         permitted_scalar?(value) ? value : nil
       end
@@ -89,13 +106,29 @@ module ShieldsUp
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
     end
 
+    # {'bar' =>
+    # [[1,2,3,object],[4,5,6]]}
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
           if [Hash, PARAM_TYPE].collect{ |klass| value.is_a?(klass) }.any?
             dup[key.to_sym] = deep_dup_to_hash(value)
+          elsif value.is_a? Array
+            value.each do |v|
+              dup[key.to_sym] = [] unless dup[key.to_sym].is_a? Array
+              if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
+                dup[key.to_sym] << deep_dup_to_hash(v)
+              else
+                if v.duplicable?
+                  dup[key.to_sym] << v.dup
+                else
+                  dup[key.to_sym] << v
+                end
+              end
+            end
           else
             dup[key.to_sym] = value.dup rescue value
+            #???? why do we need to dup, what if some thing can not be duped say fixnum
           end
         end
       end

@@ -40,6 +40,15 @@ module ShieldsUp
       assert_equal expected, params.permit(:foo)
     end
 
+    def test_permit_legal_array
+      object = Controller.new
+      params = Parameters.new({'foo' => ['1', '2', '3', 1]}, @controller)
+      expected = {:foo => ['1', '2', '3', 1]}
+      assert_equal expected, params.permit(:foo => [])
+      expected = {}
+      assert_equal expected, params.permit(:foo)
+    end
+
     def test_permit_hash
       params = Parameters.new({'foo' => 'bar'}, @controller)
       expected = {:foo => 'bar'}
@@ -96,6 +105,43 @@ module ShieldsUp
       assert_equal saved, @controller.params
     end
 
+    def test_permit_for_array_of_hashes
+
+      params = Parameters.new({'bar' => [{'foo2' => 2}, {'foo3' => 'bar3'}]}, @controller)
+      expected = {:bar=>[{:foo2=>2}, {}]}
+      assert_equal expected, params.permit(:bar => [:foo2])
+    end
+
+    def test_get_for_array_of_hashes
+      params = Parameters.new({'bar' => [{'foo2' => 'bar2'}, {'foo3' => 'bar3'}]}, @controller)
+      e1 = Parameters.new({:foo2 => 'bar2'}, @controller)
+      e2 = Parameters.new({:foo3 => 'bar3'}, @controller)
+      expected = [e1.instance_variable_get(:@params), e2.instance_variable_get(:@params)]
+      result = []
+      params[:bar].each do |e|
+        result << e.instance_variable_get(:@params)
+      end
+      assert_equal expected, result
+    end
+    #
+    # def test_permit_for_array_of_arrays
+    #   object = Object.new
+    #   # params = Parameters.new({'foo' => {'bar' => [[1,2,3,object],[4,5,6]]}}, @controller)
+    #   params = Parameters.new({'foo' => {'bar' => [[1,2,3],[4,5,6]]}}, @controller)
+    #   expected = {}
+    #   assert_equal expected, params.require(:foo).permit(:bar => [])
+    # end
+
+    # def test_permit!
+    #   object = Object.new
+    #   params = Parameters.new({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}, @controller)
+    #   expected = {:bar => [[1,2,3,object, :a => 'b'],[4,5,6]]}
+    #   p params.require(:foo).permit!
+    #   # assert_equal expected, params.require(:foo).permit!
+    # end
+    # {"foo"=>{"bar"=>[4, 5, 6, 1, {"a"=>"b"}]}}
+
+    #permit! should work for {'foo' => {'bar' => [[1,2,3,object],[4,5,6]]}}
     private
 
     def setup_parameters(params)
