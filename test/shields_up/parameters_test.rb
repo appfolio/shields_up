@@ -122,23 +122,15 @@ module ShieldsUp
         result << e.instance_variable_get(:@params)
       end
       assert_equal expected, result
+      assert_equal ShieldsUp::Parameters, params[:bar].first.class
     end
-    #
-    # def test_permit_for_array_of_arrays
-    #   object = Object.new
-    #   # params = Parameters.new({'foo' => {'bar' => [[1,2,3,object],[4,5,6]]}}, @controller)
-    #   params = Parameters.new({'foo' => {'bar' => [[1,2,3],[4,5,6]]}}, @controller)
-    #   expected = {}
-    #   assert_equal expected, params.require(:foo).permit(:bar => [])
-    # end
 
-    # def test_permit!
-    #   object = Object.new
-    #   params = Parameters.new({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}, @controller)
-    #   expected = {:bar => [[1,2,3,object, :a => 'b'],[4,5,6]]}
-    #   p params.require(:foo).permit!
-    #   # assert_equal expected, params.require(:foo).permit!
-    # end
+    def test_permit!
+      object = Object.new
+      params = Parameters.new({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}, @controller)
+      expected = {:bar => [[1,2,3,object, 'a' => 'b'],[4,5,6]]}
+      assert_equal expected, params.require(:foo).permit!
+    end
     # {"foo"=>{"bar"=>[4, 5, 6, 1, {"a"=>"b"}]}}
 
     #permit! should work for {'foo' => {'bar' => [[1,2,3,object],[4,5,6]]}}

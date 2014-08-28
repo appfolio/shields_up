@@ -55,7 +55,7 @@ module ShieldsUp
               permitted_for_sub_hash = permission.values.first
               if permitted_for_sub_hash == []
                 permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
-              else # :things => [:name, :stuff]
+              else # permit(:things => [:name, :stuff])
                 if @params[sub_hash].is_a? Array
                   @params[sub_hash].each do |element|
                     if element.is_a? Hash
@@ -106,8 +106,6 @@ module ShieldsUp
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
     end
 
-    # {'bar' =>
-    # [[1,2,3,object],[4,5,6]]}
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
