@@ -88,9 +88,9 @@ end
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
     end
 
-    def permit!
-      deep_dup_to_hash(@params)
-    end
+    # def permit!
+    #   deep_dup_to_hash(@params)
+    # end
 
     def [](key)
       value = @params[key]
