@@ -114,15 +114,8 @@ module ShieldsUp
 
     def test_get_for_array_of_hashes
       params = Parameters.new({'bar' => [{'foo2' => 'bar2'}, {'foo3' => 'bar3'}]}, @controller)
-      e1 = Parameters.new({:foo2 => 'bar2'}, @controller)
-      e2 = Parameters.new({:foo3 => 'bar3'}, @controller)
-      expected = [e1.instance_variable_get(:@params), e2.instance_variable_get(:@params)]
-      result = []
-      params[:bar].each do |e|
-        result << e.instance_variable_get(:@params)
-      end
-      assert_equal expected, result
-      assert_equal ShieldsUp::Parameters, params[:bar].first.class
+      expected = [Parameters.new({'foo2' => 'bar2'}, @controller), Parameters.new({'foo2' => 'bar2'}, @controller)]
+      assert_equal expected, params[:bar]
     end
 
     def test_permit!
@@ -130,6 +123,26 @@ module ShieldsUp
       params = Parameters.new({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}, @controller)
       expected = {:bar => [[1,2,3,object, 'a' => 'b'],[4,5,6]]}
       assert_equal expected, params.require(:foo).permit!
+    end
+
+    def test_permit_array_of_records_using_numeric_hash_keys
+      raw_parameter = {'title' => 'Some Book',
+                  'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
+                                             '2' => {'title' => 'Second Chapter'}}}
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:title => 'Some Book',
+                  :chapters_attributes => { '1' => {:title => 'First Chapter'},
+                                            '2' => {:title => 'Second Chapter'}}}
+      assert_equal expected, params.permit(:title, chapters_attributes: [:title])
+    end
+
+    def test_get_array_of_records_using_numeric_hash_keys
+      raw_parameter = {'title' => 'Some Book',
+                       'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
+                                                  '2' => {'title' => 'Second Chapter'}}}
+      params = Parameters.new(raw_parameter, @controller)
+      expected = Parameters.new({'1' => {:title => 'First Chapter'}, '2' => {:title => 'Second Chapter'}}, @controller)
+      assert_equal expected, params[:chapters_attributes]
     end
     # {"foo"=>{"bar"=>[4, 5, 6, 1, {"a"=>"b"}]}}
 

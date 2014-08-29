@@ -54,8 +54,9 @@ module ShieldsUp
             if @params.has_key?(sub_hash)
               permitted_for_sub_hash = permission.values.first
               if permitted_for_sub_hash == []
+                # Declaration {:comment_ids => []}.
                 permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
-              else # permit(:things => [:name, :stuff])
+              else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
                 if @params[sub_hash].is_a? Array
                   @params[sub_hash].each do |element|
                     if element.is_a? Hash
@@ -63,6 +64,15 @@ module ShieldsUp
                       permitted[sub_hash] << self.class.new(element, @controller).permit(*permitted_for_sub_hash)
                     end
                   end
+                else
+                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| k =~ /\A-?\d+\z/ }
+                    #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
+                    @params[sub_hash].each do |key,value|
+                      if value.is_a? Hash
+                        permitted[sub_hash] ||= {}
+                        permitted[sub_hash][key] = self.class.new(value, @controller).permit(*permitted_for_sub_hash)
+                      end
+                    end
                   else
                     permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
                   end
@@ -72,6 +82,7 @@ module ShieldsUp
         end
       end
     end
+end
 
     def require(key)
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
@@ -100,6 +111,10 @@ module ShieldsUp
       end
     end
 
+    def ==(params)
+      @original_params = params.instance_variable_get(:@original_params) && @controller = params.instance_variable_get(:@controller)  && @params = params.instance_variable_get(:@params)
+    end
+
   private
 
     def permitted_scalar?(value)
@@ -109,23 +124,24 @@ module ShieldsUp
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
+          symbol_key = key =~ /\A-?\d+\z/ ? key : key.to_sym
           if [Hash, PARAM_TYPE].collect{ |klass| value.is_a?(klass) }.any?
-            dup[key.to_sym] = deep_dup_to_hash(value)
+            dup[symbol_key] = deep_dup_to_hash(value)
           elsif value.is_a? Array
             value.each do |v|
-              dup[key.to_sym] = [] unless dup[key.to_sym].is_a? Array
+              dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
               if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
-                dup[key.to_sym] << deep_dup_to_hash(v)
+                dup[symbol_key] << deep_dup_to_hash(v)
               else
                 if v.duplicable?
-                  dup[key.to_sym] << v.dup
+                  dup[symbol_key] << v.dup
                 else
-                  dup[key.to_sym] << v
+                  dup[symbol_key] << v
                 end
               end
             end
           else
-            dup[key.to_sym] = value.dup rescue value
+            dup[symbol_key] = value.dup rescue value
             #???? why do we need to dup, what if some thing can not be duped say fixnum
           end
         end
