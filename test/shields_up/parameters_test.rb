@@ -4,7 +4,7 @@ module ShieldsUp
 
   class Parameters
     def ==(params)
-      @original_params = params.instance_variable_get(:@original_params) && @controller = params.instance_variable_get(:@controller)  && @params = params.instance_variable_get(:@params)
+      @original_params == params.instance_variable_get(:@original_params) && @controller == params.instance_variable_get(:@controller)  && @params == params.instance_variable_get(:@params)
     end
   end
 
@@ -119,7 +119,7 @@ module ShieldsUp
 
     def test_get_for_array_of_hashes
       params = Parameters.new({'bar' => [{'foo2' => 'bar2'}, {'foo3' => 'bar3'}]}, @controller)
-      expected = [Parameters.new({'foo2' => 'bar2'}, @controller), Parameters.new({'foo2' => 'bar2'}, @controller)]
+      expected = [Parameters.new({'foo2' => 'bar2'}, @controller), Parameters.new({'foo3' => 'bar3'}, @controller)]
       assert_equal expected, params[:bar]
     end
 

@@ -63,6 +63,7 @@ module ShieldsUp
                       permitted[sub_hash] ||= []
                       permitted[sub_hash] << self.class.new(element, @controller).permit(*permitted_for_sub_hash)
                     end
+                    #do not array of other cases expect for array of hashes
                   end
                 else
                   if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| k =~ /\A-?\d+\z/ }
