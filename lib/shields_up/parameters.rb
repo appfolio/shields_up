@@ -76,13 +76,13 @@ module ShieldsUp
                   else
                     permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
                   end
+                end
               end
             end
           end
         end
       end
     end
-end
 
     def require(key)
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
