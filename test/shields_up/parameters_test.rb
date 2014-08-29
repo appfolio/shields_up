@@ -1,6 +1,13 @@
 require 'helper'
 
 module ShieldsUp
+
+  class Parameters
+    def ==(params)
+      @original_params = params.instance_variable_get(:@original_params) && @controller = params.instance_variable_get(:@controller)  && @params = params.instance_variable_get(:@params)
+    end
+  end
+
   class ParametersTest < MiniTest::Unit::TestCase
     class Controller
       attr_accessor :params
@@ -148,5 +155,6 @@ module ShieldsUp
     def setup_parameters(params)
       @controller.params = params
     end
+
   end
 end
