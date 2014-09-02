@@ -48,14 +48,10 @@ module ShieldsUp
     def permit(*permissions)
       {}.tap do |permitted|
         permissions.each do |permission|
-          if permission.is_a?(Symbol)
-            permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
-          else
-            nested_name = permission.keys.first
-            if @params.has_key?(nested_name)
-              permissions_for_nested = permission.values.first
-              permitted[nested_name] = permit_nested(nested_name, permissions_for_nested)
-            end
+          permission, key = permission.is_a?(Symbol) ? [permission, permission] : [permission.values.first, permission.keys.first]
+          if @params.has_key?(key)
+            result = permission.is_a?(Symbol) ? permit_scalar(key) : permit_nested(key, permission)
+            permitted[key] = result if result
           end
         end
       end
@@ -84,12 +80,16 @@ module ShieldsUp
           end
         end
       else
-        permitted_scalar?(value) ? value : nil
+        permit_scalar(key)
       end
     end
 
 
   private
+
+    def permit_scalar(key)
+      permitted_scalar?(@params[key]) ? @params[key] : nil
+    end
 
     def permit_simple_hash(name, permissions)
       self.class.new(@original_params[name], @controller).permit(*permissions)
