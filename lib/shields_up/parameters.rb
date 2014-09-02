@@ -99,15 +99,15 @@ module ShieldsUp
       if value.is_a?(Hash)
         self.class.new(@original_params[key], @controller)
       elsif value.is_a?(Array)
-        array = []
-        value.each_with_index do |element, i|
-          if permitted_scalar?(element)
-            array << element
-          elsif element.is_a? Hash
-            array << self.class.new(@original_params[key][i], @controller)
+        [].tap do |array|
+          value.each_with_index do |element, i|
+            if permitted_scalar?(element)
+              array << element
+            elsif element.is_a? Hash
+              array << self.class.new(@original_params[key][i], @controller)
+            end
           end
         end
-        array
       else
         permitted_scalar?(value) ? value : nil
       end
