@@ -124,12 +124,12 @@ module ShieldsUp
       assert_equal expected, actual
     end
 
-    def test_permit!
-      object = Object.new
-      params = Parameters.new(as_params({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}), @controller)
-      expected = {:bar => [[1,2,3,object, 'a' => 'b'],[4,5,6]]}
-      assert_equal expected, params.require(:foo).permit!
-    end
+    # def test_permit!
+    #   object = Object.new
+    #   params = Parameters.new(as_params({'foo' => {'bar' => [[1,2,3,object, {'a' => 'b'}],[4,5,6]]}}), @controller)
+    #   expected = {:bar => [[1,2,3,object, 'a' => 'b'],[4,5,6]]}
+    #   assert_equal expected, params.require(:foo).permit!
+    # end
 
     def test_permit_array_of_records_using_numeric_hash_keys
       raw_parameter = as_params({'title' => 'Some Book',
