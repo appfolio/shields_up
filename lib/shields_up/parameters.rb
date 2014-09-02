@@ -67,7 +67,7 @@ module ShieldsUp
                     #do not array of other cases expect for array of hashes
                   end
                 else
-                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| k =~ /\A-?\d+\z/ }
+                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| integer_key?(k) }
                     #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
                     @params[sub_hash].each do |key,value|
                       if value.is_a? Hash
@@ -115,6 +115,10 @@ module ShieldsUp
 
     private
 
+    def integer_key?(k)
+      k =~ /\A-?\d+\z/
+    end
+
     def permitted_scalar?(value)
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
     end
@@ -122,7 +126,7 @@ module ShieldsUp
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
-          symbol_key = (key =~ /\A-?\d+\z/ ? key : key.to_sym)
+          symbol_key = (integer_key?(key) ? key : key.to_sym)
           if value.is_a?(PARAM_TYPE)
             dup[symbol_key] = deep_dup_to_hash(value)
           elsif value.is_a? Array
