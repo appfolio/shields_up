@@ -98,7 +98,6 @@ module ShieldsUp
       value = @params[key]
       if value.is_a?(Hash)
         self.class.new(@original_params[key], @controller)
-        #self.class.new(@original_params[key.to_sym] || @original_params[key], @controller)
       elsif value.is_a?(Array)
         array = []
         value.each_with_index do |element, i|
@@ -106,7 +105,6 @@ module ShieldsUp
             array << element
           elsif element.is_a? Hash
             array << self.class.new(@original_params[key][i], @controller)
-            #array << self.class.new((@original_params[key.to_s] || @original_params[key.to_sym])[i], @controller)
           end
         end
         array
@@ -133,16 +131,11 @@ module ShieldsUp
               if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
                 dup[symbol_key] << deep_dup_to_hash(v)
               else
-                if v.duplicable?
-                  dup[symbol_key] << v.dup
-                else
-                  dup[symbol_key] << v
-                end
+                dup[symbol_key] << (v.duplicable? ? v.dup : v)
               end
             end
           else
-            dup[symbol_key] = value.dup rescue value
-            #???? why do we need to dup, what if some thing can not be duped say fixnum
+            dup[symbol_key] = (value.duplicable? ? value.dup : value)
           end
         end
       end
