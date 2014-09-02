@@ -84,7 +84,6 @@ module ShieldsUp
       end
     end
 
-
   private
 
     def permit_scalar(key)
@@ -138,25 +137,16 @@ module ShieldsUp
     end
 
     def deep_dup_to_hash(params)
+      return dup_if_possible(params) unless params.is_a?(PARAM_TYPE)
       {}.tap do |dup|
         params.each do |key, value|
-          symbol_key = (integer_key?(key) ? key : key.to_sym)
-          if value.is_a?(PARAM_TYPE)
-            dup[symbol_key] = deep_dup_to_hash(value)
-          elsif value.is_a? Array
-            dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
-            value.each do |v|
-              if v.is_a?(PARAM_TYPE)
-                dup[symbol_key] << deep_dup_to_hash(v)
-              else
-                dup[symbol_key] << (v.duplicable? ? v.dup : v)
-              end
-            end
-          else
-            dup[symbol_key] = (value.duplicable? ? value.dup : value)
-          end
+          dup[integer_key?(key) ? key : key.to_sym] = deep_dup_to_hash(value)
         end
       end
+    end
+
+    def dup_if_possible(v)
+      v.duplicable? ? v.dup : v
     end
   end
 end
