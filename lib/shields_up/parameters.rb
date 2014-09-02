@@ -54,21 +54,7 @@ module ShieldsUp
             nested_name = permission.keys.first
             if @params.has_key?(nested_name)
               permissions_for_nested = permission.values.first
-              if permissions_for_nested == []
-                # Declaration {:comment_ids => []}.
-                permitted[nested_name] = permit_scalars(nested_name)
-              else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
-                if @params[nested_name].is_a? Array
-                  permitted[nested_name] = permit_array_of_hashes(nested_name, permissions_for_nested)
-                else
-                  if @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) }
-                    #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
-                    permitted[nested_name] = permit_nested_attributes_for(nested_name, permissions_for_nested)
-                  else
-                    permitted[nested_name] = permit_simple_hash(nested_name, permissions_for_nested)
-                  end
-                end
-              end
+              permitted[nested_name] = permit_nested(nested_name, permissions_for_nested)
             end
           end
         end
@@ -127,6 +113,24 @@ module ShieldsUp
 
     def integer_key?(k)
       k =~ /\A-?\d+\z/
+    end
+
+    def permit_nested(nested_name, permissions_for_nested)
+      if permissions_for_nested == []
+        # Declaration {:comment_ids => []}.
+        permit_scalars(nested_name)
+      else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
+        if @params[nested_name].is_a? Array
+          permit_array_of_hashes(nested_name, permissions_for_nested)
+        else
+          if @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) }
+            #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
+            permit_nested_attributes_for(nested_name, permissions_for_nested)
+          else
+            permit_simple_hash(nested_name, permissions_for_nested)
+          end
+        end
+      end
     end
 
     def permitted_scalar?(value)
