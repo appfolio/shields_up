@@ -49,8 +49,7 @@ module ShieldsUp
       {}.tap do |permitted|
         permissions.each do |permission|
           if permission.is_a?(Symbol)
-            result = permit_scalar(permission) if @params.has_key?(permission)
-            permitted[permission] = result if result.present?
+            permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
           else
             sub_hash_name = permission.keys.first
             if @params.has_key?(sub_hash_name)
@@ -103,16 +102,12 @@ module ShieldsUp
           end
         end
       else
-        permit_scalar(key)
+        permitted_scalar?(value) ? value : nil
       end
     end
 
 
   private
-
-    def permit_scalar(permission)
-      permitted_scalar?(@params[permission]) ? @params[permission] : nil
-    end
 
     def permit_simple_hash(name, permissions)
       self.class.new(@original_params[name], @controller).permit(*permissions)
