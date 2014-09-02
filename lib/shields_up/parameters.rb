@@ -56,20 +56,16 @@ module ShieldsUp
               permissions_for_nested = permission.values.first
               if permissions_for_nested == []
                 # Declaration {:comment_ids => []}.
-                result = permit_scalars(nested_name)
-                permitted[nested_name] = result if result.present?
+                permitted[nested_name] = permit_scalars(nested_name)
               else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
                 if @params[nested_name].is_a? Array
-                  result = permit_array_of_hashes(nested_name, permissions_for_nested)
-                  permitted[nested_name] = result if result.present?
+                  permitted[nested_name] = permit_array_of_hashes(nested_name, permissions_for_nested)
                 else
                   if @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) }
                     #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
-                    result =  permit_nested_attributes_for(nested_name, permissions_for_nested)
-                    permitted[nested_name] = result if result.present?
+                    permitted[nested_name] = permit_nested_attributes_for(nested_name, permissions_for_nested)
                   else
-                    result = permit_simple_hash(nested_name, permissions_for_nested)
-                    permitted[nested_name] = result
+                    permitted[nested_name] = permit_simple_hash(nested_name, permissions_for_nested)
                   end
                 end
               end
@@ -125,8 +121,8 @@ module ShieldsUp
       @params[name].zip(@original_params[name]).select{|el| el[0].is_a? Hash}.collect{|el| self.class.new(el[1], @controller).permit(*permissions)}
     end
 
-    def permit_scalars(sub_hash)
-      @params[sub_hash].select { |element| permitted_scalar? element }
+    def permit_scalars(name)
+      @params[name].select { |element| permitted_scalar? element }
     end
 
     def integer_key?(k)
@@ -144,8 +140,8 @@ module ShieldsUp
           if value.is_a?(PARAM_TYPE)
             dup[symbol_key] = deep_dup_to_hash(value)
           elsif value.is_a? Array
+            dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
             value.each do |v|
-              dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
               if v.is_a?(PARAM_TYPE)
                 dup[symbol_key] << deep_dup_to_hash(v)
               else

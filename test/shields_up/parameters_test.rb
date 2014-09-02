@@ -151,6 +151,45 @@ module ShieldsUp
       assert_equal expected, params[:chapters_attributes]
     end
 
+    def test_strong_parameter_similarity
+      raw_parameter = as_params({'titles' => []})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {}
+      actual = params.permit(:a)
+      assert_equal expected, actual
+
+      raw_parameter = as_params({'titles' => []})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => []}
+      actual = params.permit(:titles => [])
+      assert_equal expected, actual
+
+      raw_parameter = as_params({'titles' => [{'c' => 1}, {'c' => 2}]})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => [{}, {}]}
+      actual = params.permit(:titles => [:x])
+      assert_equal expected, actual
+
+      raw_parameter = as_params({'titles' => []})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => []}
+      actual = params.permit(:titles => [:x])
+      assert_equal expected, actual
+
+
+      raw_parameters = as_params({'b' => {'1' => {'a' => 1}, '2' => {'a' => 2}}})
+      parameters = Parameters.new(raw_parameters, @controller)
+      expected = {:b=>{'1'=>{:a=>1}, '2'=>{:a=>2}}}
+      actual = parameters.permit(:b => [:a])
+      assert_equal expected, actual
+
+      raw_parameters = as_params({'b' => {'1' => {'a' => 1}, '2' => {'a' => 2}}})
+      parameters = Parameters.new(raw_parameters, @controller)
+      expected = {:b=>{"1"=>{}, "2"=>{}}}
+      actual = parameters.permit(:b => [:c])
+      assert_equal expected, actual
+    end
+
     private
 
     def setup_parameters(params)
