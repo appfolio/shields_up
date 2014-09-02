@@ -49,14 +49,16 @@ module ShieldsUp
       {}.tap do |permitted|
         permissions.each do |permission|
           if permission.is_a?(Symbol)
-            permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
+            result = permit_scalar(permission) if @params.has_key?(permission)
+            permitted[permission] = result if result.present?
           else
             sub_hash_name = permission.keys.first
             if @params.has_key?(sub_hash_name)
               permission_for_sub_hash = permission.values.first
               if permission_for_sub_hash == []
                 # Declaration {:comment_ids => []}.
-                permitted[sub_hash_name] = permit_scalars(sub_hash_name)
+                result = permit_scalars(sub_hash_name)
+                permitted[sub_hash_name] = result if result.present?
               else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
                 if @params[sub_hash_name].is_a? Array
                   result = permit_array_of_hashes(sub_hash_name, permission_for_sub_hash)
@@ -67,7 +69,8 @@ module ShieldsUp
                     result =  permit_nested_attributes_for(sub_hash_name, permission_for_sub_hash)
                     permitted[sub_hash_name] = result if result.present?
                   else
-                    permitted[sub_hash_name] = permit_simple_hash(sub_hash_name, permission_for_sub_hash)
+                    result = permit_simple_hash(sub_hash_name, permission_for_sub_hash)
+                    permitted[sub_hash_name] = result
                   end
                 end
               end
@@ -100,11 +103,16 @@ module ShieldsUp
           end
         end
       else
-        permitted_scalar?(value) ? value : nil
+        permit_scalar(key)
       end
     end
 
-    private
+
+  private
+
+    def permit_scalar(permission)
+      permitted_scalar?(@params[permission]) ? @params[permission] : nil
+    end
 
     def permit_simple_hash(name, permissions)
       self.class.new(@original_params[name], @controller).permit(*permissions)
