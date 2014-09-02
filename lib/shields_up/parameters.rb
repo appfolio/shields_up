@@ -122,13 +122,13 @@ module ShieldsUp
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
-          symbol_key = key =~ /\A-?\d+\z/ ? key : key.to_sym
-          if [Hash, PARAM_TYPE].collect{ |klass| value.is_a?(klass) }.any?
+          symbol_key = (key =~ /\A-?\d+\z/ ? key : key.to_sym)
+          if value.is_a?(PARAM_TYPE)
             dup[symbol_key] = deep_dup_to_hash(value)
           elsif value.is_a? Array
             value.each do |v|
               dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
-              if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
+              if v.is_a?(PARAM_TYPE)
                 dup[symbol_key] << deep_dup_to_hash(v)
               else
                 dup[symbol_key] << (v.duplicable? ? v.dup : v)
