@@ -35,6 +35,7 @@ module ShieldsUp
     end
 
     def initialize(params, controller)
+      raise UnsupportedParameterType.new unless params.is_a? ActiveSupport::HashWithIndifferentAccess
       @original_params = params
       @controller = controller
       @params = deep_dup_to_hash(params || {})
@@ -54,9 +55,30 @@ module ShieldsUp
             if @params.has_key?(sub_hash)
               permitted_for_sub_hash = permission.values.first
               if permitted_for_sub_hash == []
+                # Declaration {:comment_ids => []}.
                 permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
-              else
-                permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+              else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
+                if @params[sub_hash].is_a? Array
+                  @params[sub_hash].each_with_index do |element, i|
+                    if element.is_a? Hash
+                      permitted[sub_hash] ||= []
+                      permitted[sub_hash] << self.class.new(@original_params[sub_hash][i], @controller).permit(*permitted_for_sub_hash)
+                    end
+                    #do not array of other cases expect for array of hashes
+                  end
+                else
+                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| k =~ /\A-?\d+\z/ }
+                    #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
+                    @params[sub_hash].each do |key,value|
+                      if value.is_a? Hash
+                        permitted[sub_hash] ||= {}
+                        permitted[sub_hash][key] = self.class.new(@original_params[sub_hash][key], @controller).permit(*permitted_for_sub_hash)
+                      end
+                    end
+                  else
+                    permitted[sub_hash] = self.class.new(@original_params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+                  end
+                end
               end
             end
           end
@@ -75,15 +97,25 @@ module ShieldsUp
     def [](key)
       value = @params[key]
       if value.is_a?(Hash)
-        self.class.new(value, @controller)
+        self.class.new(@original_params[key], @controller)
+        #self.class.new(@original_params[key.to_sym] || @original_params[key], @controller)
       elsif value.is_a?(Array)
-        value.select{ |element| permitted_scalar?(element) }
+        array = []
+        value.each_with_index do |element, i|
+          if permitted_scalar?(element)
+            array << element
+          elsif element.is_a? Hash
+            array << self.class.new(@original_params[key][i], @controller)
+            #array << self.class.new((@original_params[key.to_s] || @original_params[key.to_sym])[i], @controller)
+          end
+        end
+        array
       else
         permitted_scalar?(value) ? value : nil
       end
     end
 
-  private
+    private
 
     def permitted_scalar?(value)
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
@@ -92,10 +124,25 @@ module ShieldsUp
     def deep_dup_to_hash(params)
       {}.tap do |dup|
         params.each do |key, value|
+          symbol_key = key =~ /\A-?\d+\z/ ? key : key.to_sym
           if [Hash, PARAM_TYPE].collect{ |klass| value.is_a?(klass) }.any?
-            dup[key.to_sym] = deep_dup_to_hash(value)
+            dup[symbol_key] = deep_dup_to_hash(value)
+          elsif value.is_a? Array
+            value.each do |v|
+              dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
+              if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
+                dup[symbol_key] << deep_dup_to_hash(v)
+              else
+                if v.duplicable?
+                  dup[symbol_key] << v.dup
+                else
+                  dup[symbol_key] << v
+                end
+              end
+            end
           else
-            dup[key.to_sym] = value.dup rescue value
+            dup[symbol_key] = value.dup rescue value
+            #???? why do we need to dup, what if some thing can not be duped say fixnum
           end
         end
       end
