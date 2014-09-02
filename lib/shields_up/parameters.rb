@@ -51,32 +51,23 @@ module ShieldsUp
           if permission.is_a?(Symbol)
             permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
           else
-            sub_hash = permission.keys.first
-            if @params.has_key?(sub_hash)
-              permitted_for_sub_hash = permission.values.first
-              if permitted_for_sub_hash == []
+            sub_hash_name = permission.keys.first
+            if @params.has_key?(sub_hash_name)
+              permission_for_sub_hash = permission.values.first
+              if permission_for_sub_hash == []
                 # Declaration {:comment_ids => []}.
-                permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
+                permitted[sub_hash_name] = permit_scalars(sub_hash_name)
               else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
-                if @params[sub_hash].is_a? Array
-                  @params[sub_hash].each_with_index do |element, i|
-                    if element.is_a? Hash
-                      permitted[sub_hash] ||= []
-                      permitted[sub_hash] << self.class.new(@original_params[sub_hash][i], @controller).permit(*permitted_for_sub_hash)
-                    end
-                    #do not array of other cases expect for array of hashes
-                  end
+                if @params[sub_hash_name].is_a? Array
+                  result = permit_array_of_hashes(sub_hash_name, permission_for_sub_hash)
+                  permitted[sub_hash_name] = result if result.present?
                 else
-                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| integer_key?(k) }
+                  if @params[sub_hash_name].is_a?(Hash) && @params[sub_hash_name].keys.all? { |k| integer_key?(k) }
                     #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
-                    @params[sub_hash].each do |key,value|
-                      if value.is_a? Hash
-                        permitted[sub_hash] ||= {}
-                        permitted[sub_hash][key] = self.class.new(@original_params[sub_hash][key], @controller).permit(*permitted_for_sub_hash)
-                      end
-                    end
+                    result =  permit_nested_attributes_for(sub_hash_name, permission_for_sub_hash)
+                    permitted[sub_hash_name] = result if result.present?
                   else
-                    permitted[sub_hash] = self.class.new(@original_params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+                    permitted[sub_hash_name] = permit_simple_hash(sub_hash_name, permission_for_sub_hash)
                   end
                 end
               end
@@ -114,6 +105,26 @@ module ShieldsUp
     end
 
     private
+
+    def permit_simple_hash(name, permissions)
+      self.class.new(@original_params[name], @controller).permit(*permissions)
+    end
+
+    def permit_nested_attributes_for(name, permissions)
+      {}.tap do |result|
+        @params[name].each do |key, value|
+          result[key] = self.class.new(@original_params[name][key], @controller).permit(*permissions) if value.is_a? Hash
+        end
+      end
+    end
+
+    def permit_array_of_hashes(name, permissions)
+      @params[name].zip(@original_params[name]).select{|el| el[0].is_a? Hash}.collect{|el| self.class.new(el[1], @controller).permit(*permissions)}
+    end
+
+    def permit_scalars(sub_hash)
+      @params[sub_hash].select { |element| permitted_scalar? element }
+    end
 
     def integer_key?(k)
       k =~ /\A-?\d+\z/
