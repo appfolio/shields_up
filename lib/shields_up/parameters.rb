@@ -51,25 +51,25 @@ module ShieldsUp
           if permission.is_a?(Symbol)
             permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
           else
-            sub_hash_name = permission.keys.first
-            if @params.has_key?(sub_hash_name)
-              permission_for_sub_hash = permission.values.first
-              if permission_for_sub_hash == []
+            nested_name = permission.keys.first
+            if @params.has_key?(nested_name)
+              permissions_for_nested = permission.values.first
+              if permissions_for_nested == []
                 # Declaration {:comment_ids => []}.
-                result = permit_scalars(sub_hash_name)
-                permitted[sub_hash_name] = result if result.present?
+                result = permit_scalars(nested_name)
+                permitted[nested_name] = result if result.present?
               else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
-                if @params[sub_hash_name].is_a? Array
-                  result = permit_array_of_hashes(sub_hash_name, permission_for_sub_hash)
-                  permitted[sub_hash_name] = result if result.present?
+                if @params[nested_name].is_a? Array
+                  result = permit_array_of_hashes(nested_name, permissions_for_nested)
+                  permitted[nested_name] = result if result.present?
                 else
-                  if @params[sub_hash_name].is_a?(Hash) && @params[sub_hash_name].keys.all? { |k| integer_key?(k) }
+                  if @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) }
                     #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
-                    result =  permit_nested_attributes_for(sub_hash_name, permission_for_sub_hash)
-                    permitted[sub_hash_name] = result if result.present?
+                    result =  permit_nested_attributes_for(nested_name, permissions_for_nested)
+                    permitted[nested_name] = result if result.present?
                   else
-                    result = permit_simple_hash(sub_hash_name, permission_for_sub_hash)
-                    permitted[sub_hash_name] = result
+                    result = permit_simple_hash(nested_name, permissions_for_nested)
+                    permitted[nested_name] = result
                   end
                 end
               end
