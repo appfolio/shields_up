@@ -35,6 +35,7 @@ module ShieldsUp
     end
 
     def initialize(params, controller)
+      raise UnsupportedParameterType.new unless params.is_a? ActiveSupport::HashWithIndifferentAccess
       @original_params = params
       @controller = controller
       @params = deep_dup_to_hash(params || {})
@@ -58,10 +59,10 @@ module ShieldsUp
                 permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
               else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
                 if @params[sub_hash].is_a? Array
-                  @params[sub_hash].each do |element|
+                  @params[sub_hash].each_with_index do |element, i|
                     if element.is_a? Hash
                       permitted[sub_hash] ||= []
-                      permitted[sub_hash] << self.class.new(element, @controller).permit(*permitted_for_sub_hash)
+                      permitted[sub_hash] << self.class.new(@original_params[sub_hash][i], @controller).permit(*permitted_for_sub_hash)
                     end
                     #do not array of other cases expect for array of hashes
                   end
@@ -71,11 +72,11 @@ module ShieldsUp
                     @params[sub_hash].each do |key,value|
                       if value.is_a? Hash
                         permitted[sub_hash] ||= {}
-                        permitted[sub_hash][key] = self.class.new(value, @controller).permit(*permitted_for_sub_hash)
+                        permitted[sub_hash][key] = self.class.new(@original_params[sub_hash][key], @controller).permit(*permitted_for_sub_hash)
                       end
                     end
                   else
-                    permitted[sub_hash] = self.class.new(@params[sub_hash], @controller).permit(*permitted_for_sub_hash)
+                    permitted[sub_hash] = self.class.new(@original_params[sub_hash], @controller).permit(*permitted_for_sub_hash)
                   end
                 end
               end
@@ -89,21 +90,23 @@ module ShieldsUp
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
     end
 
-    # def permit!
-    #   deep_dup_to_hash(@params)
-    # end
+    def permit!
+      deep_dup_to_hash(@params)
+    end
 
     def [](key)
       value = @params[key]
       if value.is_a?(Hash)
-        self.class.new(value, @controller)
+        self.class.new(@original_params[key], @controller)
+        #self.class.new(@original_params[key.to_sym] || @original_params[key], @controller)
       elsif value.is_a?(Array)
         array = []
-        value.each do |element|
+        value.each_with_index do |element, i|
           if permitted_scalar?(element)
             array << element
           elsif element.is_a? Hash
-            array << self.class.new(element, @controller)
+            array << self.class.new(@original_params[key][i], @controller)
+            #array << self.class.new((@original_params[key.to_s] || @original_params[key.to_sym])[i], @controller)
           end
         end
         array
