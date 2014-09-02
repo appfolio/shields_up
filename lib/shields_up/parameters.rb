@@ -38,7 +38,7 @@ module ShieldsUp
       raise UnsupportedParameterType.new unless params.is_a? ActiveSupport::HashWithIndifferentAccess
       @original_params = params
       @controller = controller
-      @params = deep_dup_to_hash(params || {})
+      @params = deep_dup_to_hash(params)
     end
 
     def to_s
