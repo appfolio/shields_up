@@ -115,7 +115,7 @@ module ShieldsUp
       end
     end
 
-  private
+    private
 
     def permitted_scalar?(value)
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}

@@ -133,8 +133,8 @@ module ShieldsUp
 
     def test_permit_array_of_records_using_numeric_hash_keys
       raw_parameter = as_params({'title' => 'Some Book',
-                  'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
-                                             '2' => {'title' => 'Second Chapter'}}})
+                                 'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
+                                                            '2' => {'title' => 'Second Chapter'}}})
       params = Parameters.new(raw_parameter, @controller)
       expected = {:title => 'Some Book',
                   :chapters_attributes => { '1' => {:title => 'First Chapter'},
@@ -144,8 +144,8 @@ module ShieldsUp
 
     def test_get_array_of_records_using_numeric_hash_keys
       raw_parameter = as_params({'title' => 'Some Book',
-                       'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
-                                                  '2' => {'title' => 'Second Chapter'}}})
+                                 'chapters_attributes' => { '1' => {'title' => 'First Chapter'},
+                                                            '2' => {'title' => 'Second Chapter'}}})
       params = Parameters.new(raw_parameter, @controller)
       expected = Parameters.new(as_params({'1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}), @controller)
       assert_equal expected, params[:chapters_attributes]
