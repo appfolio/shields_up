@@ -38,7 +38,7 @@ module ShieldsUp
       raise UnsupportedParameterType.new unless params.is_a? ActiveSupport::HashWithIndifferentAccess
       @original_params = params
       @controller = controller
-      @params = deep_dup_to_hash(params || {})
+      @params = deep_dup_to_hash(params)
     end
 
     def to_s
@@ -48,39 +48,10 @@ module ShieldsUp
     def permit(*permissions)
       {}.tap do |permitted|
         permissions.each do |permission|
-          if permission.is_a?(Symbol)
-            permitted[permission] = @params[permission] if @params.has_key?(permission) && permitted_scalar?(@params[permission])
-          else
-            sub_hash = permission.keys.first
-            if @params.has_key?(sub_hash)
-              permitted_for_sub_hash = permission.values.first
-              if permitted_for_sub_hash == []
-                # Declaration {:comment_ids => []}.
-                permitted[sub_hash] = @params[sub_hash].select{ |element| permitted_scalar? element }
-              else # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
-                if @params[sub_hash].is_a? Array
-                  @params[sub_hash].each_with_index do |element, i|
-                    if element.is_a? Hash
-                      permitted[sub_hash] ||= []
-                      permitted[sub_hash] << self.class.new(@original_params[sub_hash][i], @controller).permit(*permitted_for_sub_hash)
-                    end
-                    #do not array of other cases expect for array of hashes
-                  end
-                else
-                  if @params[sub_hash].is_a?(Hash) && @params[sub_hash].keys.all? { |k| k =~ /\A-?\d+\z/ }
-                    #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
-                    @params[sub_hash].each do |key,value|
-                      if value.is_a? Hash
-                        permitted[sub_hash] ||= {}
-                        permitted[sub_hash][key] = self.class.new(@original_params[sub_hash][key], @controller).permit(*permitted_for_sub_hash)
-                      end
-                    end
-                  else
-                    permitted[sub_hash] = self.class.new(@original_params[sub_hash], @controller).permit(*permitted_for_sub_hash)
-                  end
-                end
-              end
-            end
+          permission, key = permission.is_a?(Symbol) ? [permission, permission] : [permission.values.first, permission.keys.first]
+          if @params.has_key?(key)
+            result = permission.is_a?(Symbol) ? permit_scalar(key) : permit_nested(key, permission)
+            permitted[key] = result if result
           end
         end
       end
@@ -98,54 +69,78 @@ module ShieldsUp
       value = @params[key]
       if value.is_a?(Hash)
         self.class.new(@original_params[key], @controller)
-        #self.class.new(@original_params[key.to_sym] || @original_params[key], @controller)
       elsif value.is_a?(Array)
-        array = []
-        value.each_with_index do |element, i|
-          if permitted_scalar?(element)
-            array << element
-          elsif element.is_a? Hash
-            array << self.class.new(@original_params[key][i], @controller)
-            #array << self.class.new((@original_params[key.to_s] || @original_params[key.to_sym])[i], @controller)
+        [].tap do |array|
+          value.each_with_index do |element, i|
+            if permitted_scalar?(element)
+              array << element
+            elsif element.is_a? Hash
+              array << self.class.new(@original_params[key][i], @controller)
+            end
           end
         end
-        array
       else
-        permitted_scalar?(value) ? value : nil
+        permit_scalar(key)
       end
     end
 
-    private
+  private
+
+    def permit_scalar(key)
+      permitted_scalar?(@params[key]) ? @params[key] : nil
+    end
+
+    def permit_simple_hash(name, permissions)
+      self.class.new(@original_params[name], @controller).permit(*permissions)
+    end
+
+    def permit_nested_attributes_for(name, permissions)
+      {}.tap do |result|
+        @params[name].each do |key, value|
+          result[key] = self.class.new(@original_params[name][key], @controller).permit(*permissions) if value.is_a? Hash
+        end
+      end
+    end
+
+    def permit_array_of_hashes(name, permissions)
+      @params[name].zip(@original_params[name]).select{|el| el[0].is_a? Hash}.collect{|el| self.class.new(el[1], @controller).permit(*permissions)}
+    end
+
+    def permit_scalars(name)
+      @params[name].select { |element| permitted_scalar? element }
+    end
+
+    def integer_key?(k)
+      k =~ /\A-?\d+\z/
+    end
+
+    def permit_nested(nested_name, permissions_for_nested)
+      if permissions_for_nested == [] # Declaration {:comment_ids => []}.
+        permit_scalars(nested_name)
+      elsif @params[nested_name].is_a? Array # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
+        permit_array_of_hashes(nested_name, permissions_for_nested)
+      elsif @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) } #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
+        permit_nested_attributes_for(nested_name, permissions_for_nested)
+      else
+        permit_simple_hash(nested_name, permissions_for_nested)
+      end
+    end
 
     def permitted_scalar?(value)
       PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
     end
 
     def deep_dup_to_hash(params)
+      return dup_if_possible(params) unless params.is_a?(PARAM_TYPE)
       {}.tap do |dup|
         params.each do |key, value|
-          symbol_key = key =~ /\A-?\d+\z/ ? key : key.to_sym
-          if [Hash, PARAM_TYPE].collect{ |klass| value.is_a?(klass) }.any?
-            dup[symbol_key] = deep_dup_to_hash(value)
-          elsif value.is_a? Array
-            value.each do |v|
-              dup[symbol_key] = [] unless dup[symbol_key].is_a? Array
-              if [Hash, PARAM_TYPE].collect{ |klass| v.is_a?(klass) }.any?
-                dup[symbol_key] << deep_dup_to_hash(v)
-              else
-                if v.duplicable?
-                  dup[symbol_key] << v.dup
-                else
-                  dup[symbol_key] << v
-                end
-              end
-            end
-          else
-            dup[symbol_key] = value.dup rescue value
-            #???? why do we need to dup, what if some thing can not be duped say fixnum
-          end
+          dup[integer_key?(key) ? key : key.to_sym] = deep_dup_to_hash(value)
         end
       end
+    end
+
+    def dup_if_possible(v)
+      v.duplicable? ? v.dup : v
     end
   end
 end
