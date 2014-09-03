@@ -254,6 +254,14 @@ module ShieldsUp
       assert_equal expected, actual
     end
 
+    def test_permit__nested_with_integer_key
+      raw_parameter = as_params({'stuff' => {"1"=>{"235"=>{"selected"=>"true", "amount"=>"5"}}}})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {}
+      actual = params.permit(:stuff => [])
+      assert_equal expected, actual
+    end
+
     private
 
     def setup_parameters(params)

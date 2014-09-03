@@ -126,7 +126,7 @@ module ShieldsUp
 
     def permit_nested(nested_name, permissions_for_nested)
       if permissions_for_nested == [] # Declaration {:comment_ids => []}.
-        permit_scalars(nested_name)
+        @params[nested_name].is_a?(Array) ? permit_scalars(nested_name) : nil
       elsif @params[nested_name].is_a? Array # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
         permit_array_of_hashes(nested_name, permissions_for_nested)
       elsif @params[nested_name].is_a?(Hash) && @params[nested_name].keys.all? { |k| integer_key?(k) } #{ '1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}
