@@ -190,6 +190,70 @@ module ShieldsUp
       assert_equal expected, actual
     end
 
+    def test_permit__simple_hash_is_not_there
+      raw_parameter = as_params({'titles' => nil})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
+    def test_permit__simple_hash_nothing_is_there
+      raw_parameter = as_params({})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
+    def test_permit__nested_hash_is_not_there
+      raw_parameter = as_params({'titles' => {'1' => nil}})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => {'1' => nil}}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
+    def test_permit__nested_hash_member_is_not_there
+      raw_parameter = as_params({'titles' => {'1' => {'a' => nil}}})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => {'1' => {:a => nil}}}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
+    def test_permit__parameter_nil
+      raw_parameter = as_params({'titles' => nil})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => nil}
+      actual = params.permit(:titles)
+      assert_equal expected, actual
+    end
+
+    def test_permit__parameter_missing
+      raw_parameter = as_params({})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {}
+      actual = params.permit(:titles)
+      assert_equal expected, actual
+    end
+
+    def test_permit__array_of_hashes_not_there
+      raw_parameter = as_params({'titles' => []})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => []}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
+    def test_permit__array_of_hashes_member_not_there
+      raw_parameter = as_params({'titles' => [{:c => 1}]})
+      params = Parameters.new(raw_parameter, @controller)
+      expected = {:titles => [{}]}
+      actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+    end
+
     private
 
     def setup_parameters(params)

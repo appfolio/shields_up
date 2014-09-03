@@ -50,8 +50,13 @@ module ShieldsUp
         permissions.each do |permission|
           permission, key = permission.is_a?(Symbol) ? [permission, permission] : [permission.values.first, permission.keys.first]
           if @params.has_key?(key)
-            result = permission.is_a?(Symbol) ? permit_scalar(key) : permit_nested(key, permission)
-            permitted[key] = result if result
+            if permission.is_a?(Symbol)
+                result = permit_scalar(key)
+                permitted[key] = result if @params[key] == result
+            else
+              result = permit_nested(key, permission)
+              permitted[key] = result if result
+            end
           end
         end
       end
@@ -91,13 +96,18 @@ module ShieldsUp
     end
 
     def permit_simple_hash(name, permissions)
-      self.class.new(@original_params[name], @controller).permit(*permissions)
+      if @params[name].is_a? Hash
+        self.class.new(@original_params[name], @controller).permit(*permissions)
+      else
+        permit_scalar(name)
+      end
     end
 
     def permit_nested_attributes_for(name, permissions)
       {}.tap do |result|
         @params[name].each do |key, value|
           result[key] = self.class.new(@original_params[name][key], @controller).permit(*permissions) if value.is_a? Hash
+          result[key] = value if permitted_scalar?(value)
         end
       end
     end
