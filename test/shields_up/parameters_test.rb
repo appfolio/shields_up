@@ -254,13 +254,21 @@ module ShieldsUp
       assert_equal expected, actual
     end
 
-    def test_permit__nested_with_integer_key
-      raw_parameter = as_params({'stuff' => {"1"=>{"235"=>{"selected"=>"true", "amount"=>"5"}}}})
+    def test_permit__nested_with_sub_nested_with_key
+      raw_parameter = as_params({'stuff' => {"1"=>{"data" => {"235"=>{"selected"=>"true", "amount"=>"5"}}}}})
       params = Parameters.new(raw_parameter, @controller)
-      expected = {}
-      actual = params.permit(:stuff => [])
+      expected = {:stuff => {"1" => {:data => {"235"=>{:selected=>"true", :amount=>"5"}}}}}
+      actual = params.permit(:stuff => [:data => [:selected, :amount]])
       assert_equal expected, actual
     end
+
+    # def test_permit__nested_with_sub_nested
+    #   raw_parameter = as_params({'stuff' => {"1"=>{"235"=>{"selected"=>"true", "amount"=>"5"}}}})
+    #   params = Parameters.new(raw_parameter, @controller)
+    #   expected = {:stuff => {"1" => {"235"=>{:selected=>"true", :amount=>"5"}}}}
+    #   actual = params.permit(:stuff => [Integer => [:selected, :amount]])
+    #   assert_equal expected, actual
+    # end
 
     private
 
