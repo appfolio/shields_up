@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/indifferent_access'
 module ShieldsUp
   class Parameters
     if defined?(ActionController) && defined?(ActionController::Parameters)
