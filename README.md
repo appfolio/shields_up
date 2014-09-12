@@ -1,11 +1,11 @@
 #Shields Up
 This gem provides an alternative implementation of strong_parameters. 
-#usage (We basically use the same grammar as strong parameter)
+##usage (we basically use the same grammar as strong parameter)
 - **Read this first**: [Strong Parameter Usage](http://edgeguides.rubyonrails.org/action_controller_overview.html#strong-parameters)
 
 
-#Difference to strong parameter
-- ###enable ShieldsUp<br>
+##Difference to strong parameter
+- enable ShieldsUp<br>
 
 in Gemfile<br>
 ```
@@ -16,8 +16,8 @@ in controllers<br>
   include ShieldsUp   
 ```
 
-- ###ShieldsUp::Parameter type only allow bracket operation[], permit and require.
-- ###You can only use symbol to access variables.<br>
+- ShieldsUp::Parameter type only allow bracket operation[], permit and require.
+- You can only use symbol to access variables.<br>
 
 Example:<br>
 ```
@@ -33,7 +33,7 @@ params.fetch(:company)
 params.fetch("company")
 ```
 
-- ###How to disable shields up.<br>
+- How to disable shields up.<br>
 For legacy code which is so hard to have a full list of variables should be permitted, you can disable shields_up but you should be careful for doing that.
 <pre>
 params.with_shields_down do
@@ -44,6 +44,7 @@ end
 So, you should be careful if you are using it inside a gem.
 </b>
 </pre>
+
 #things should be noticed:
 - to update and destroy associated records, permit **:id, :_destroy **when you use accepts_nested_attributes_for in combination with a has_many association. <br> 
 
@@ -62,7 +63,7 @@ Example:
 ``` 
 - **use hash inside permit statment** for non scaler type.<br>
 
-For example:
+Example:
 ``` 
 # To whitelist the following data:
 # {"applicant" => {"email_address" => "some@email.com",
