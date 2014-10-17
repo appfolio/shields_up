@@ -23,7 +23,7 @@ module ShieldsUp
       expected = 'bar'
       assert_equal expected, params[:foo]
       assert_equal params[:foo].class, String
-      expected = {:can => {:be => 'nested'}}
+      expected = {'can' => {'be' => 'nested'}}
       assert_equal expected, params[:hashes].instance_variable_get(:@params)
       assert_equal params[:hashes].class, ShieldsUp::Parameters
       assert_nil params[:doesntexist]
