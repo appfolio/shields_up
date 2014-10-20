@@ -49,7 +49,7 @@ module ShieldsUp
     def permit(*permissions)
       {}.tap do |permitted|
         permissions.each do |permission|
-          permission, key = permission.is_a?(Symbol) ? [permission, permission] : [permission.values.first, permission.keys.first]
+          permission, key = permission.is_a?(Symbol) ? [permission, permission.to_s] : [permission.values.first, permission.keys.first.to_s]
           if @params.has_key?(key)
             if permission.is_a?(Symbol)
                 result = permit_scalar(key)
@@ -60,7 +60,7 @@ module ShieldsUp
             end
           end
         end
-      end
+      end.symbolize_keys
     end
 
     def require(key)
@@ -68,10 +68,11 @@ module ShieldsUp
     end
 
     # def permit!
-    #   deep_dup_to_hash(@params)
+    #   deep_dup_to_hash(@params).symbolize_keys
     # end
 
     def [](key)
+      key = key.to_s
       value = @params[key]
       if value.is_a?(Hash)
         self.class.new(@original_params[key], @controller)
@@ -145,7 +146,7 @@ module ShieldsUp
       return dup_if_possible(params) unless params.is_a?(PARAM_TYPE)
       {}.tap do |dup|
         params.each do |key, value|
-          dup[integer_key?(key) ? key : key.to_sym] = deep_dup_to_hash(value)
+          dup[key] = deep_dup_to_hash(value)
         end
       end
     end
