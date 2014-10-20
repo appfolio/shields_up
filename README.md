@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/appfolio/shields_up.png)](https://travis-ci.org/appfolio/shields_up)
+[![Code Climate](https://codeclimate.com/github/appfolio/shields_up/badges/gpa.svg)](https://codeclimate.com/github/appfolio/shields_up)
+[![Test Coverage](https://codeclimate.com/github/appfolio/shields_up/badges/coverage.svg)](https://codeclimate.com/github/appfolio/shields_up)
 
 #Shields Up
 This gem provides an alternative implementation of strong_parameters.
