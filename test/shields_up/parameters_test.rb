@@ -142,7 +142,7 @@ module ShieldsUp
       expected = {:title => 'Some Book',
                   :chapters_attributes => { '1' => {:title => 'First Chapter'},
                                             '2' => {:title => 'Second Chapter'}}}
-      assert_equal expected, params.permit(:title, chapters_attributes: [:title])
+      assert_equal expected, params.permit(:title, :chapters_attributes => [:title])
     end
 
     def test_get_array_of_records_using_numeric_hash_keys

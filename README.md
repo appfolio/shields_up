@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/appfolio/shields_up.png)](https://travis-ci.org/appfolio/shields_up)
+
 #Shields Up
 This gem provides an alternative implementation of strong_parameters.
 ##usage (the grammar for permit statements is the same as strong_parameters)
