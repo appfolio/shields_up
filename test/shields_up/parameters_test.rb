@@ -39,6 +39,7 @@ module ShieldsUp
       params = Parameters.new(as_params({'foo' => object}), @controller)
       expected = {}
       assert_equal expected, params.permit(:foo)
+      assert_equal expected, params.permit('foo')
     end
 
     def test_permit_array
@@ -46,53 +47,56 @@ module ShieldsUp
       params = Parameters.new(as_params({'foo' => ['1', '2', '3', 1, object]}), @controller)
       expected = {:foo => ['1', '2', '3', 1]}
       assert_equal expected, params.permit(:foo => [])
+      assert_equal expected, params.permit('foo' => [])
       expected = {}
-      assert_equal expected, params.permit(:foo)
+      assert_equal expected, params.permit('foo')
+      assert_equal expected, params.permit('foo')
     end
 
     def test_permit_legal_array
       params = Parameters.new(as_params({'foo' => ['1', '2', '3', 1]}), @controller)
       expected = {:foo => ['1', '2', '3', 1]}
-      assert_equal expected, params.permit(:foo => [])
+      assert_equal expected, params.permit('foo' => [])
       expected = {}
       assert_equal expected, params.permit(:foo)
+      assert_equal expected, params.permit('foo')
     end
 
     def test_permit_hash
       params = Parameters.new(as_params({'foo' => 'bar'}), @controller)
       expected = {:foo => 'bar'}
       assert_equal expected, params.permit(:foo)
+      assert_equal expected, params.permit('foo')
     end
 
     def test_permit_hash_nested
       params = Parameters.new(as_params({'foo' => {'bar' => {'name' => 'pirats', 'number' => '5', 'secret' => '1337'}}}), @controller)
       expected = {:foo => {:bar => {:name => 'pirats', :number => '5'}}}
       assert_equal expected, params.permit(:foo => [:bar => [:name, :number]])
+      assert_equal expected, params.permit('foo' => ['bar' => ['name', 'number']])
     end
 
     def test_require
       params = Parameters.new(as_params({'foo' => 'bar'}), @controller)
       expected = 'bar'
       assert_equal expected, params.require(:foo)
-    end
-
-    def test_require_uses_internal_access
-      params = Parameters.new(as_params({'foo' => 'bar'}), @controller)
-      params.expects(:[]).with(:foo).returns('bar')
-      expected = 'bar'
-      assert_equal expected, params.require(:foo)
+      assert_equal expected, params.require('foo')
     end
 
     def test_require_nested
       params = Parameters.new(as_params({'foo' => {'bar' => 'baz'}}), @controller)
       expected = 'baz'
       assert_equal expected, params.require(:foo).require(:bar)
+      assert_equal expected, params.require('foo').require('bar')
     end
 
     def test_require_raises
       params = Parameters.new(as_params({}), @controller)
       assert_raises ParameterMissing do
         params.require(:foo)
+      end
+      assert_raises ParameterMissing do
+        params.require('foo')
       end
     end
 
@@ -118,12 +122,15 @@ module ShieldsUp
       params = Parameters.new(as_params({'bar' => [{'foo2' => 2}, {'foo3' => 'bar3'}]}), @controller)
       expected = {:bar=>[{:foo2=>2}, {}]}
       assert_equal expected, params.permit(:bar => [:foo2])
+      assert_equal expected, params.permit('bar' => ['foo2'])
     end
 
     def test_get_for_array_of_hashes
       params = Parameters.new(as_params({'bar' => [{'foo2' => 'bar2'}, {'foo3' => 'bar3'}]}), @controller)
       expected = [Parameters.new(as_params({'foo2' => 'bar2'}), @controller), Parameters.new(as_params({'foo3' => 'bar3'}), @controller)]
       actual = params[:bar]
+      assert_equal expected, actual
+      actual = params['bar']
       assert_equal expected, actual
     end
 
@@ -143,6 +150,7 @@ module ShieldsUp
                   :chapters_attributes => { '1' => {:title => 'First Chapter'},
                                             '2' => {:title => 'Second Chapter'}}}
       assert_equal expected, params.permit(:title, :chapters_attributes => [:title])
+      assert_equal expected, params.permit('title', 'chapters_attributes' => ['title'])
     end
 
     def test_get_array_of_records_using_numeric_hash_keys
@@ -152,6 +160,7 @@ module ShieldsUp
       params = Parameters.new(raw_parameter, @controller)
       expected = Parameters.new(as_params({'1' => {'title' => 'First Chapter'}, '2' => {'title' => 'Second Chapter'}}), @controller)
       assert_equal expected, params[:chapters_attributes]
+      assert_equal expected, params['chapters_attributes']
     end
 
     def test_strong_parameter_similarity
@@ -160,23 +169,31 @@ module ShieldsUp
       expected = {}
       actual = params.permit(:a)
       assert_equal expected, actual
+      actual = params.permit('a')
+      assert_equal expected, actual
 
       raw_parameter = as_params({'titles' => []})
       params = Parameters.new(raw_parameter, @controller)
       expected = {:titles => []}
       actual = params.permit(:titles => [])
       assert_equal expected, actual
+      actual = params.permit('titles' => [])
+      assert_equal expected, actual
 
       raw_parameter = as_params({'titles' => [{'c' => 1}, {'c' => 2}]})
       params = Parameters.new(raw_parameter, @controller)
       expected = {:titles => [{}, {}]}
-      actual = params.permit(:titles => [:x])
+      actual = params.permit('titles' => ['x'])
+      assert_equal expected, actual
+      actual = params.permit('titles' => ['x'])
       assert_equal expected, actual
 
       raw_parameter = as_params({'titles' => []})
       params = Parameters.new(raw_parameter, @controller)
       expected = {:titles => []}
       actual = params.permit(:titles => [:x])
+      assert_equal expected, actual
+      actual = params.permit('titles' => ['x'])
       assert_equal expected, actual
 
 
@@ -185,11 +202,15 @@ module ShieldsUp
       expected = {:b=>{'1'=>{:a=>1}, '2'=>{:a=>2}}}
       actual = parameters.permit(:b => [:a])
       assert_equal expected, actual
+      actual = parameters.permit('b' => ['a'])
+      assert_equal expected, actual
 
       raw_parameters = as_params({'b' => {'1' => {'a' => 1}, '2' => {'a' => 2}}})
       parameters = Parameters.new(raw_parameters, @controller)
       expected = {:b=>{"1"=>{}, "2"=>{}}}
       actual = parameters.permit(:b => [:c])
+      assert_equal expected, actual
+      actual = parameters.permit('b' => ['c'])
       assert_equal expected, actual
     end
 
@@ -199,6 +220,8 @@ module ShieldsUp
       expected = {}
       actual = params.permit(:titles => [:a])
       assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
+      assert_equal expected, actual
     end
 
     def test_permit__simple_hash_nothing_is_there
@@ -206,6 +229,8 @@ module ShieldsUp
       params = Parameters.new(raw_parameter, @controller)
       expected = {}
       actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
       assert_equal expected, actual
     end
 
@@ -215,6 +240,8 @@ module ShieldsUp
       expected = {:titles => {'1' => nil}}
       actual = params.permit(:titles => [:a])
       assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
+      assert_equal expected, actual
     end
 
     def test_permit__nested_hash_member_is_not_there
@@ -222,6 +249,8 @@ module ShieldsUp
       params = Parameters.new(raw_parameter, @controller)
       expected = {:titles => {'1' => {:a => nil}}}
       actual = params.permit(:titles => [:a])
+      assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
       assert_equal expected, actual
     end
 
@@ -231,6 +260,8 @@ module ShieldsUp
       expected = {:titles => nil}
       actual = params.permit(:titles)
       assert_equal expected, actual
+      actual = params.permit('titles')
+      assert_equal expected, actual
     end
 
     def test_permit__parameter_missing
@@ -238,6 +269,8 @@ module ShieldsUp
       params = Parameters.new(raw_parameter, @controller)
       expected = {}
       actual = params.permit(:titles)
+      assert_equal expected, actual
+      actual = params.permit('titles')
       assert_equal expected, actual
     end
 
@@ -247,6 +280,8 @@ module ShieldsUp
       expected = {:titles => []}
       actual = params.permit(:titles => [:a])
       assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
+      assert_equal expected, actual
     end
 
     def test_permit__array_of_hashes_member_not_there
@@ -255,6 +290,8 @@ module ShieldsUp
       expected = {:titles => [{}]}
       actual = params.permit(:titles => [:a])
       assert_equal expected, actual
+      actual = params.permit('titles' => ['a'])
+      assert_equal expected, actual
     end
 
     def test_permit__nested_with_sub_nested_with_key
@@ -262,6 +299,8 @@ module ShieldsUp
       params = Parameters.new(raw_parameter, @controller)
       expected = {:stuff => {"1" => {:data => {"235"=>{:selected=>"true", :amount=>"5"}}}}}
       actual = params.permit(:stuff => [:data => [:selected, :amount]])
+      assert_equal expected, actual
+      actual = params.permit('stuff' => ['data' => ['selected', 'amount']])
       assert_equal expected, actual
     end
 
