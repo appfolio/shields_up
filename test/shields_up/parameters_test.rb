@@ -22,13 +22,16 @@ module ShieldsUp
       params = Parameters.new(as_params({'a' => ['b', 'c', 1],'foo' => 'bar', 'hashes' => {'can' => {'be' => 'nested'}}}), @controller)
       expected = 'bar'
       assert_equal expected, params[:foo]
+      assert_equal expected, params['foo']
       assert_equal params[:foo].class, String
       expected = {'can' => {'be' => 'nested'}}
       assert_equal expected, params[:hashes].instance_variable_get(:@params)
       assert_equal params[:hashes].class, ShieldsUp::Parameters
       assert_nil params[:doesntexist]
+      assert_nil params['doesntexist']
       expected = ['b', 'c', 1]
       assert_equal expected, params[:a]
+      assert_equal expected, params['a']
     end
 
     def test_permit_non_permitted_scalar

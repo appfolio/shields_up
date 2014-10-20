@@ -20,7 +20,7 @@ in controllers<br>
 ```
 
 - ShieldsUp::Parameter type only allows three operations: [], permit and require.
-- You can only use symbols to access variables.<br>
+- You can use symbols or strings to access variables.<br>
 
 ##Example:<br>
 ```
