@@ -49,9 +49,9 @@ module ShieldsUp
     def permit(*permissions)
       {}.tap do |permitted|
         permissions.each do |permission|
-          permission, key = permission.is_a?(Symbol) ? [permission, permission.to_s] : [permission.values.first, permission.keys.first.to_s]
+          permission, key = (permission.is_a?(Symbol) || permission.is_a?(String)) ? [permission, permission.to_s] : [permission.values.first, permission.keys.first.to_s]
           if @params.has_key?(key)
-            if permission.is_a?(Symbol)
+            if permission.is_a?(Symbol) || permission.is_a?(String)
                 result = permit_scalar(key)
                 permitted[key] = result if @params[key] == result
             else
