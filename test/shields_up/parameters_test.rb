@@ -50,13 +50,14 @@ module ShieldsUp
       assert_equal expected, params.permit('foo' => [])
       expected = {}
       assert_equal expected, params.permit('foo')
-      assert_equal expected, params.permit('foo')
+      assert_equal expected, params.permit(:foo)
     end
 
     def test_permit_legal_array
       params = Parameters.new(as_params({'foo' => ['1', '2', '3', 1]}), @controller)
       expected = {:foo => ['1', '2', '3', 1]}
       assert_equal expected, params.permit('foo' => [])
+      assert_equal expected, params.permit(:foo => [])
       expected = {}
       assert_equal expected, params.permit(:foo)
       assert_equal expected, params.permit('foo')
@@ -183,7 +184,7 @@ module ShieldsUp
       raw_parameter = as_params({'titles' => [{'c' => 1}, {'c' => 2}]})
       params = Parameters.new(raw_parameter, @controller)
       expected = {:titles => [{}, {}]}
-      actual = params.permit('titles' => ['x'])
+      actual = params.permit(:titles => [:x])
       assert_equal expected, actual
       actual = params.permit('titles' => ['x'])
       assert_equal expected, actual
