@@ -24,28 +24,18 @@ in controllers<br>
   include ShieldsUp
 ```
 
-- ShieldsUp::Parameter type only allows three operations: [], permit and require.
+- ShieldsUp::Parameters type only allows three operations: [], permit and require.
 - You can use symbols or strings to access variables.<br>
 
 ##Example:<br>
 ```
-params[:company]
+params[:company] Or params["company"]
 ```
-not:
-```
-params["company"]
-```
-or
-```
-params.fetch(:company)
-params.fetch("company")
-```
-
 ##A more complicated example:<br>
 ```
 params.permit(:company => [:address, :enabled])
 ```
-not:
+Or:
 ```
 params.permit("company" => [:address, "enabled"])
 ```
