@@ -13,7 +13,7 @@ This gem provides an alternative implementation of strong_parameters.
 params.symbolize_keys (or similar functions) will disable strong_parameters
 protection silently. With ShieldsUp this can not happen.
 (For a more in depth explanation see this discussion on the rails core mailing
-list: [https://groups.google.com/forum/#!topic/rubyonrails-core/TdQVJCw1HfI])
+list: https://groups.google.com/forum/#!topic/rubyonrails-core/TdQVJCw1HfI)
 
 ## Enable ShieldsUp<br>
 
