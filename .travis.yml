@@ -11,7 +11,7 @@ gemfile:
   - gemfiles/activesupport_3.2.gemfile
   - gemfiles/activesupport_4.0.gemfile
 
-sudo:false
+sudo: false
 
 matrix:
   allow_failures:
