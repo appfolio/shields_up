@@ -1,19 +1,18 @@
 language: ruby
+
 rvm:
-  - 2.1.5
-  - 2.1.4
-  - 2.1.3
-  - 2.1.2
-  - 2.1.0
+  - 2.1
   - 2.0.0
   - 1.9.3
   - jruby-19mode # JRuby in 1.9 mode
   - ruby-head
 
-matrix:
-  allow_failures:
-    - rvm: ruby-head
-
 gemfile:
   - gemfiles/activesupport_3.2.gemfile
   - gemfiles/activesupport_4.0.gemfile
+
+sudo:false
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
