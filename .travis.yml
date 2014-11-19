@@ -1,5 +1,7 @@
 language: ruby
 rvm:
+  - 2.1.5
+  - 2.1.4
   - 2.1.3
   - 2.1.2
   - 2.1.0
@@ -11,3 +13,7 @@ rvm:
 matrix:
   allow_failures:
     - rvm: ruby-head
+
+gemfile:
+  - gemfiles/activesupport_3.2.gemfile
+  - gemfiles/activesupport_4.0.gemfile

@@ -10,6 +10,7 @@ rescue Bundler::BundlerError => e
 end
 
 require 'rake'
+require 'appraisal'
 require 'rake/testtask'
 
 namespace :test do

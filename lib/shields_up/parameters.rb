@@ -1,10 +1,12 @@
 require 'active_support/core_ext/hash/indifferent_access'
 module ShieldsUp
   class Parameters
-    if defined?(ActionController) && defined?(ActionController::Parameters)
-      PARAM_TYPE = ActionController::Parameters
-    else
-      PARAM_TYPE = ActiveSupport::HashWithIndifferentAccess
+    def self.param_type
+      @param_type ||= if defined?(ActionController) && defined?(ActionController::Parameters)
+        ActionController::Parameters
+      else
+        ActiveSupport::HashWithIndifferentAccess
+      end
     end
 
     PERMITTED_SCALAR_TYPES = [
@@ -143,7 +145,7 @@ module ShieldsUp
     end
 
     def deep_dup_to_hash(params)
-      return dup_if_possible(params) unless params.is_a?(PARAM_TYPE)
+      return dup_if_possible(params) unless params.is_a?(self.class.param_type)
       {}.tap do |dup|
         params.each do |key, value|
           dup[key] = deep_dup_to_hash(value)

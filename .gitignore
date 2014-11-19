@@ -1,4 +1,4 @@
 Gemfile.lock
-gemfiles/*
+gemfiles/*.lock
 .idea/*
 pkg/*
