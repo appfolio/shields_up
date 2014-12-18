@@ -8,7 +8,12 @@ module ShieldsUp
     end
   end
 
-  class ParametersTest < MiniTest::Unit::TestCase
+  base_class = if MiniTest::Unit::VERSION.start_with?('5')
+                 Minitest::Test
+               else
+                 MiniTest::Unit::TestCase
+               end
+  class ParametersTest < base_class
     class Controller
       attr_accessor :params
     end

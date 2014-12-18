@@ -10,6 +10,7 @@ rvm:
 gemfile:
   - gemfiles/activesupport_3.2.gemfile
   - gemfiles/activesupport_4.0.gemfile
+  - gemfiles/activesupport_4.1.gemfile
 
 sudo: false
 
