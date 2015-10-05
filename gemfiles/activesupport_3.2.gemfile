@@ -6,8 +6,9 @@ gem "appraisal"
 gem "mocha"
 gem "activemodel"
 gem "rails"
-gem "minitest", "~> 4.0"
 gem "codeclimate-test-reporter", :require => nil
 gem "activesupport", "~> 3.2.0"
+gem "test-unit", "~> 3.0"
+gem "minitest", "~> 4.0"
 
 gemspec :path => "../"
