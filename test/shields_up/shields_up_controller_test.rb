@@ -15,7 +15,18 @@ end
 
 class ShieldsUpTest < ActionController::TestCase
   ENV['RAILS_ENV'] = 'test'
-  Rails.application = class FakeApp < Rails::Application; end
+  Rails.application = class FakeApp < Rails::Application
+    private
+    def validate_secret_key_config!; end
+    self
+  end
+  Rails.application.config.secret_key_base = 'jj'
+
+  module ::ActiveSupport
+    class LegacyKeyGenerator
+      def ensure_secret_secure(_); end
+    end
+  end
 
   class ::FakeModel; end
   class ::AnotherFakeModel; end
