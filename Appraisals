@@ -18,3 +18,8 @@ appraise "activesupport-4.2" do
   gem 'activesupport', '~> 4.2.4'
   gem 'minitest', '~> 5.1'
 end
+
+appraise "activesupport-4.2.5.1" do
+  gem 'activesupport', '~> 4.2.5.1'
+  gem 'minitest', '~> 5.1'
+end
