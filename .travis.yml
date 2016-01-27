@@ -13,6 +13,7 @@ gemfile:
   - gemfiles/activesupport_4.0.gemfile
   - gemfiles/activesupport_4.1.gemfile
   - gemfiles/activesupport_4.2.gemfile
+  - gemfiles/activesupport_4.2.5.1.gemfile
 
 sudo: false
 
