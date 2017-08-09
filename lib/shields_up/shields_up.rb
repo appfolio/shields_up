@@ -7,7 +7,9 @@ module ShieldsUp
       end
     end
     klass.rescue_from(ShieldsUp::ParameterMissing) do |parameter_missing_exception|
-      render :text => "Required parameter missing: #{parameter_missing_exception}", :status => :bad_request
+      render text: "Required parameter missing: #{parameter_missing_exception}",
+        status: :bad_request,
+        content_type: 'text/plain'
     end
   end
 end
