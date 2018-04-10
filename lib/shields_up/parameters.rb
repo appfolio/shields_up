@@ -1,4 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/duplicable'
+
 module ShieldsUp
   class Parameters
     def self.param_type
@@ -69,9 +71,9 @@ module ShieldsUp
       self[key] or raise ParameterMissing.new("Required parameter #{key} does not exist in #{to_s}")
     end
 
-    # def permit!
-    #   deep_dup_to_hash(@params).symbolize_keys
-    # end
+    def permit!
+      deep_dup_to_hash(@params).symbolize_keys
+    end
 
     def [](key)
       key = key.to_s
